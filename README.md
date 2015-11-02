@@ -83,6 +83,7 @@ The following exceptions are thrown:
 * `RegistryAuthenticationException`: username and password are invalid
 * `RegistryAuthorizationException`: user does not have sufficient rights to search in this registry
 
+**NOTE:** The search endpoint relies on the catalog endpoint, which only is available from registry:2.1. If you try it prior to 2.1, you will get a `404` error.
 
 #### tags
 ````ruby
