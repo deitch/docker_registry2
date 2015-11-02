@@ -72,14 +72,9 @@ results = reg.search("mylibs")
 
 Returns all repositories whose name contains `"mylibs"`. 
 
-**Note:** The v2 registry does not support search directly server-side. Thus, this is simulated by using the `catalog/` endpoint. It is highly recommended to avoid using this function until the v2 registry supports it, as it pulls a lot of data and will be slow.
+**Note:** The v2 registry does not support search directly server-side. Thus, this is simulated by using the `catalog/` endpoint. It is highly recommended to avoid using this function until the v2 registry supports direct search, as it will be slow. It pulls a list of all repositories to the client and then does a pattern match on them.
 
-Returns an array of objects, each of which has the following key/value pairs:
-
-* `name`: full name of repository, e.g. `redis` or `user/redis`
-* `description`: freeform description of repository, e.g. "this is the official redis repository"
-
-Other fields may be added later. Do *not* assume those are the only fields.
+Returns an array of strings, each of which is the full name of a repository.
 
 If no results are found, will return an empty array `[]`. An empty array will not throw an exception.
 
