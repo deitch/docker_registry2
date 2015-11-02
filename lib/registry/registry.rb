@@ -36,7 +36,7 @@ class DockerRegistry::Registry
         throw DockerRegistry::RegistryAuthorizationException
       end
     rescue RestClient::ResourceNotFound
-      raise DockerRegistry::UnknownRegistry
+      raise DockerRegistry::RegistryUnknownException
     end
     return response
   end
