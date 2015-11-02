@@ -12,7 +12,7 @@ tags = reg.tags("foo/repo")
 
 Supports anonymous access, http authorization and v2 token access.
 
-Inspired by https://github.com/rosylilly/docker_registry but written independently.
+Inspired by https://github.com/rosylilly/docker_registry but written separately.
 
 
 ## Installation
@@ -113,8 +113,12 @@ All exceptions thrown inherit from `DockerRegistry::Exception`.
 
 ## License
 
-Released under the MIT License.
+MIT License.
 
+## Contribution
+
+Developed by Avi Deitcher http://github.com/deitch 
+Contributions courtesy of TraderTools, Inc. http://tradertools.com
 
 
 
