@@ -14,34 +14,53 @@ class DockerRegistry::Registry
     # make a ping connection
     ping
   end
-  
-  def doget(url, token=nil)
+
+  def doget(url)
     begin
-      # do we already have a token to authenticate?
-      if token.nil?
-        response = RestClient.get @base_uri+url
-      else
-        response = RestClient.get @base_uri+url, Authorization: 'Bearer '+token
-      end
+      response = RestClient.get @base_uri+url
     rescue SocketError
       raise DockerRegistry::RegistryUnknownException
     rescue RestClient::Unauthorized => e
-      # unauthorized
-      # did we already try for this realm and service and scope and have insufficient privileges?
-      if token.nil?
-        token = authenticate e.response.headers[:www_authenticate]
-        # go do whatever you were going to do again
-        response = doget url, token
+      header = e.response.headers[:www_authenticate]
+      method = header.downcase.split(' ')[0]
+      case method
+      when 'basic'
+        response = do_basic_get(url)
+      when 'bearer'
+        response = do_bearer_get(url, header)
       else
-        throw DockerRegistry::RegistryAuthorizationException
+        raise DockerRegistry::RegistryUnknownException
       end
-    rescue RestClient::ResourceNotFound
-      raise DockerRegistry::RegistryUnknownException
     end
     return response
   end
-  
-  def authenticate(header)
+
+  def do_basic_get(url)
+    begin
+      res = RestClient::Resource.new( @base_uri+url, @user, @password)
+      response = res.get
+    rescue SocketError
+      raise DockerRegistry::RegistryUnknownException
+    rescue RestClient::Unauthorized
+      raise DockerRegistry::RegistryAuthenticationException
+    end
+    return response
+  end
+
+  def do_bearer_get(url, header)
+    token = authenticate_bearer(header)
+    begin
+      response = RestClient.get @base_uri+url, Authorization: 'Bearer '+token
+    rescue SocketError
+      raise DockerRegistry::RegistryUnknownException
+    rescue RestClient::Unauthorized
+      raise DockerRegistry::RegistryAuthenticationException
+    end
+
+    return response
+  end
+
+  def authenticate_bearer(header)
     # get the parts we need
     target = split_auth_header(header)
     # did we have a username and password?
@@ -61,7 +80,7 @@ class DockerRegistry::Registry
     # now save the web token
     return JSON.parse(response)["token"]
   end
-  
+
   def split_auth_header(header = '')
     h = Hash.new
     h = {params: {}}
@@ -81,7 +100,7 @@ class DockerRegistry::Registry
   def ping
     response = doget '/v2/'
   end
-  
+
   def search(query = '')
     response = doget "/v2/_catalog"
     # parse the response
