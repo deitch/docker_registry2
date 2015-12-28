@@ -118,6 +118,7 @@ MIT License.
 ## Contribution
 
 Developed by Avi Deitcher http://github.com/deitch 
+Contributors Jonathan Hurter https://github.com/johnsudaar
 Contributions courtesy of TraderTools, Inc. http://tradertools.com
 
 
