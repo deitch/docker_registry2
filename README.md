@@ -5,7 +5,7 @@
 This is a simple gem that provides direct http access to a docker registry v2 without going through a docker server. You do **not** requires docker installed on your system to provide access.
 
 ````ruby
-reg = DockerRegistry.new("https://my.registy.corp.com")
+reg = DockerRegistry.connect("https://my.registy.corp.com")
 repos = reg.search("foo/repo")
 tags = reg.tags("foo/repo")
 ````
