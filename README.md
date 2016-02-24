@@ -35,7 +35,7 @@ Once it is installed, you first *open* a connection to a registry, and then *req
 To connect to a registry:
 
 ````ruby
-reg = DockerRegistry.new("https://my.registy.corp.com")
+reg = DockerRegistry.connect("https://my.registy.corp.com")
 ````
 
 The above will connect anonymously to the registry via the endpoint `https://my.registry.corp.com/v2/`.
@@ -47,7 +47,7 @@ The following exceptions are thrown:
 * `RegistrySSLException`: registry SSL certificate cannot be validated
 
 #### Authenticated
-If you wish to authenticate, pass a username and password as the second and third parameters.
+If you wish to authenticate, pass a username and password as part of the URL.
 
 ````ruby
 reg = DockerRegistry.connect("https://myuser:mypass@my.registy.corp.com")
@@ -62,7 +62,7 @@ The following exceptions are thrown:
 
 
 ### Requests
-Once you have a valid `reg` object return by `DockerRegistry.new()`, you can make requests. As of this version, only search and tags are supported. Others will be added over time.
+Once you have a valid `reg` object return by `DockerRegistry.connect()`, you can make requests. As of this version, only search and tags are supported. Others will be added over time.
 
 
 #### search
@@ -87,29 +87,162 @@ The following exceptions are thrown:
 
 #### tags
 ````ruby
-results = reg.tags("mylibs")
+results = reg.tags("mylibs",withHashes)
 ````
 
-Returns all known tags for the repository precisely named `"mylibs"`. 
+Returns all known tags for the repository precisely named `"mylibs"`. If `withHashes` is present and set to `true`, also will return all of the hashes for each tag. See below. Note that retrieving the hashes is an expensive operations, as it requires a separate `HEAD` for each tag. This is why the default is `false`.
 
 Returns an object with the following key value pairs:
  array of objects, each of which has the following key/value pairs:
 
 * `name`: full name of repository, e.g. `redis` or `user/redis`
 * `tags`: array of strings, each of which is a tag for ths given repository
+* `hashes`: object, keys of which are the tag name, and values of which are the hash. Only provided if `withHashes` is true.
 
 Other fields may be added later. Do *not* assume those are the only fields.
 
 If no tags are found, or the named repository does not exist, return an empty object `{}`. An unknown repository will not throw an exception.
+
+The response structure looks something like this:
+
+````ruby
+{
+	"name" => "special/repo",
+	"tags" => ["1.0","1.1","1.3","latest"],
+	"hashes" => {
+		"1.0" => "abc4567",
+		"1.1" => "87def23",
+		"1.3" => "998adf2",
+		"latest" => "998adf2"
+	}
+}
+````
+
+It is important to note that the hashes **may** or **may not** match the hashes that you receive when running `docker images` on your machine. These are the hashes returned by the `Docker-Content-Digest` for the manifest. See [v2 API Spec](https://docs.docker.com/registry/spec/api/#get-manifest). 
+
+These **may** or **may not** be useful for comparing to the local image on disk when running `docker images`. These **are** useful for comparing 2 different tags or images in one or more registries.
 
 The following exceptions are thrown:
 
 * `RegistryAuthenticationException`: username and password are invalid
 * `RegistryAuthorizationException`: registry does not support tags using the given credentials, probably because the repository is private and the credentials provided do not have access
 
+
+
+
+
+#### manifest
+````ruby
+manifest = reg.manifest("namespace/repo","2.5.6")
+````
+
+Returns the manifest for the given tag of the given repository. For the format and syntax of the manifest, see the [registry API](https://github.com/docker/distribution/blob/master/docs/spec/api.md) and the [manifest issue](https://github.com/docker/docker/issues/8093).
+
+
+If the given repository and/or tag is not found, return an empty object `{}`.
+
+The following exceptions are thrown:
+
+* `RegistryAuthenticationException`: username and password are invalid
+* `RegistryAuthorizationException`: registry does not support tags using the given credentials, probably because the repository is private and the credentials provided do not have access
+
+#### pull
+````ruby
+reg.pull("namespace/repo","2.5.6",dir)
+````
+
+Pulls the given tag of the given repository to the given `dir`. If given `dir`does not exist, will create it.
+
+It is important to note that the image for a tag is not likely to be a single file, but rather multiple layers, each of which is an individual file. Thus, it is necessary to have a directory where the downloaded layers are to be kept. The actual docker engine stores these under `/var/lib/docker/`.
+
+If the given repository and/or tag is not found, return an empty object `{}`.
+
+The following exceptions are thrown:
+
+* `RegistryAuthenticationException`: username and password are invalid
+* `RegistryAuthorizationException`: registry does not support tags or pull using the given credentials, probably because the repository is private and the credentials provided do not have access.
+
+#### push
+````ruby
+reg.push(manifest,dir)
+````
+
+Pushes the given manifest to the registry, using images in the given `dir`. You are assumed to have created the manifest or gotten it from somewhere else. This is especially useful for moving an image from one registry to another. You can get the manifest, pull the layers, and push the manifest to a different registry.
+
+The following exceptions are thrown:
+
+* `RegistryAuthenticationException`: username and password are invalid
+* `RegistryAuthorizationException`: registry does not support pushing the layers or uploading the manifest using the given credentials, probably because the repository is private and the credentials provided do not have access
+* `MissingLayerException`: A layer from the manifest is missing from the given `dir` and thus cannot be pushed.
+
+#### tag
+````ruby
+reg.tag("namespace/repo","tag",newrepo,newtag)
+````
+
+`tag` is a convenience method to create a new repository for a given repository in the same registry. For example, you have a registry at `https://my.registry.local`. In the registry is a repository named "myspace/repo", with a tag "1.2". You wish to duplicate "myspace/repo:1.2" to "myspace/repo:latest". Or, perhaps you wish to duplicate "myspace/repo:1.2" to "others/image:10.5". You can do it using `tag`:
+
+````ruby
+reg.tag("myspace/repo","1.2","myspace/repo","latest")
+reg.tag("myspace/repo","1.2","other/image","10.5")
+````
+
+This is a convenience and efficiency method. Because it only manipulates the manifest, and not the layers (which already are present in the registry), it can do so quickly.
+
+The following exceptions are thrown:
+
+* `RegistryAuthenticationException`: username and password are invalid
+* `RegistryAuthorizationException`: registry does not support pushing the layers or uploading the manifest using the given credentials, probably because the repository is private and the credentials provided do not have access
+
+#### copy
+````ruby
+reg.copy("namespace/repo","tag",newregistry,newrepo,newtag)
+````
+
+`copy` copies an image from one registry to another. It does so in the following manner:
+
+1. Download the manifest
+2. Download all relevant layers
+3. Modify the manifest as needed to reflect the `newrepo` and `newtag`
+4. Upload the layers to `newregistry`
+5. Upload the manifest to `newregistry`
+
+The following exceptions are thrown:
+
+* `RegistryAuthenticationException`: username and password are invalid
+* `RegistryAuthorizationException`: registry does not support pushing the layers or uploading the manifest using the given credentials, probably because the repository is private and the credentials provided do not have access
+
+#### rmtag
+````ruby
+reg.rmtag("namespace/repo","tag")
+````
+
+`rmtag` removes a given tag from a repository.
+
+The following exceptions are thrown:
+
+* `RegistryAuthenticationException`: username and password are invalid
+* `RegistryAuthorizationException`: registry does not support your deleting the given tag, probably because you do not have sufficient access rights.
+
+#### rmrepo
+````ruby
+reg.rmrepo("namespace/repo")
+````
+
+`rmrepo` removes the named repository entirely.
+
+The following exceptions are thrown:
+
+* `RegistryAuthenticationException`: username and password are invalid
+* `RegistryAuthorizationException`: registry does not support your deleting the given repository, probably because you do not have sufficient access rights.
+
+
 ### Exceptions
 
 All exceptions thrown inherit from `DockerRegistry::Exception`.
+
+## Tests
+The simplest way to test is against a true v2 registry. Thus, the test setup and teardown work against a docker registry. That means that to test, you need a docker engine running. The tests will start up a registry (actually, two registries, to be able to test `copy()`), initialize the data and test against them.
 
 ## License
 

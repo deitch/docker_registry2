@@ -1,3 +1,4 @@
+require 'fileutils'
 require 'rest-client'
 require 'json'
 
@@ -16,85 +17,11 @@ class DockerRegistry::Registry
   end
 
   def doget(url)
-    begin
-      response = RestClient.get @base_uri+url
-    rescue SocketError
-      raise DockerRegistry::RegistryUnknownException
-    rescue RestClient::Unauthorized => e
-      header = e.response.headers[:www_authenticate]
-      method = header.downcase.split(' ')[0]
-      case method
-      when 'basic'
-        response = do_basic_get(url)
-      when 'bearer'
-        response = do_bearer_get(url, header)
-      else
-        raise DockerRegistry::RegistryUnknownException
-      end
-    end
-    return response
+    return doreq "get", url
   end
 
-  def do_basic_get(url)
-    begin
-      res = RestClient::Resource.new( @base_uri+url, @user, @password)
-      response = res.get
-    rescue SocketError
-      raise DockerRegistry::RegistryUnknownException
-    rescue RestClient::Unauthorized
-      raise DockerRegistry::RegistryAuthenticationException
-    end
-    return response
-  end
-
-  def do_bearer_get(url, header)
-    token = authenticate_bearer(header)
-    begin
-      response = RestClient.get @base_uri+url, Authorization: 'Bearer '+token
-    rescue SocketError
-      raise DockerRegistry::RegistryUnknownException
-    rescue RestClient::Unauthorized
-      raise DockerRegistry::RegistryAuthenticationException
-    end
-
-    return response
-  end
-
-  def authenticate_bearer(header)
-    # get the parts we need
-    target = split_auth_header(header)
-    # did we have a username and password?
-    if defined? @user and @user.to_s.strip.length != 0
-      target[:params][:account] = @user
-    end
-    # authenticate against the realm
-    uri = URI.parse(target[:realm])
-    uri.user = @user if defined? @user
-    uri.password = @password if defined? @password
-    begin
-      response = RestClient.get uri.to_s, {params: target[:params]}
-    rescue RestClient::Unauthorized
-      # bad authentication
-      raise DockerRegistry::RegistryAuthenticationException
-    end
-    # now save the web token
-    return JSON.parse(response)["token"]
-  end
-
-  def split_auth_header(header = '')
-    h = Hash.new
-    h = {params: {}}
-    header.split(/[\s,]+/).each {|entry|
-      p = entry.split('=')
-      case p[0]
-      when 'Bearer'
-      when 'realm'
-        h[:realm] = p[1].gsub(/(^\"|\"$)/,'')
-      else
-        h[:params][p[0]] = p[1].gsub(/(^\"|\"$)/,'')
-      end
-    }
-    h
+  def dohead(url)
+    return doreq "head", url
   end
 
   def ping
@@ -112,9 +39,144 @@ class DockerRegistry::Registry
     return repos
   end
 
-  def tags(repo)
+  def tags(repo,withHashes = false)
     response = doget "/v2/#{repo}/tags/list"
     # parse the response
-    JSON.parse response
+    resp = JSON.parse response
+    # do we include the hashes?
+    if withHashes then 
+      useGet = false
+      resp["hashes"] = {}
+      resp["tags"].each {|tag|
+        if useGet then
+          head = doget "/v2/#{repo}/manifests/#{tag}"
+        else
+          begin
+            head = dohead "/v2/#{repo}/manifests/#{tag}"
+          rescue DockerRegistry::InvalidMethod
+            # in case we are in a registry pre-2.3.0, which did not support manifest HEAD
+            useGet = true
+            head = doget "/v2/#{repo}/manifests/#{tag}"
+          end
+        end
+        resp["hashes"][tag] = head.headers[:docker_content_digest]
+      }
+    end
+    
+    return resp
   end
+  
+  def manifest(repo,tag)
+    # first get the manifest
+    JSON.parse doget "/v2/#{repo}/manifests/#{tag}"
+  end
+  
+  def pull(repo,tag,dir)
+    # make sure the directory exists
+    FileUtils::mkdir_p dir
+    # get the manifest
+    m = manifest repo,tag
+    # pull each of the layers
+    layers = m["fsLayers"].each { |layer|
+      # make sure the layer does not exist first
+      if ! File.file? "#{dir}/#{layer.blobSum}" then
+        doget "/v2/#{repo}/blobs/#{layer.blobSum}" "#{dir}/#{layer.blobSum}"
+      end
+    }
+  end
+  
+  def push(manifest,dir)
+  end
+  
+  def tag(repo,tag,newrepo,newtag)
+  end
+  
+  def copy(repo,tag,newregistry,newrepo,newtag)
+  end
+  
+  private
+    def doreq(type,url)
+      begin
+        response = RestClient::Request.execute method: type, url: @base_uri+url
+      rescue SocketError
+        raise DockerRegistry::RegistryUnknownException
+      rescue RestClient::Unauthorized => e
+        header = e.response.headers[:www_authenticate]
+        method = header.downcase.split(' ')[0]
+        case method
+        when 'basic'
+          response = do_basic_req(type, url)
+        when 'bearer'
+          response = do_bearer_req(type, url, header)
+        else
+          raise DockerRegistry::RegistryUnknownException
+        end
+      end
+      return response
+    end
+
+    def do_basic_req(type, url)
+      begin
+        response = RestClient::Request.execute method: type, url: @base_uri+url, user: @user, password: @password
+      rescue SocketError
+        raise DockerRegistry::RegistryUnknownException
+      rescue RestClient::Unauthorized
+        raise DockerRegistry::RegistryAuthenticationException
+      rescue RestClient::MethodNotAllowed
+        raise DockerRegistry::InvalidMethod
+      end
+      return response
+    end
+
+    def do_bearer_req(type, url, header)
+      token = authenticate_bearer(header)
+      begin
+        response = RestClient::Request.execute method: type, url: @base_uri+url, headers: {Authorization: 'Bearer '+token}
+      rescue SocketError
+        raise DockerRegistry::RegistryUnknownException
+      rescue RestClient::Unauthorized
+        raise DockerRegistry::RegistryAuthenticationException
+      rescue RestClient::MethodNotAllowed
+        raise DockerRegistry::InvalidMethod
+      end
+
+      return response
+    end
+
+    def authenticate_bearer(header)
+      # get the parts we need
+      target = split_auth_header(header)
+      # did we have a username and password?
+      if defined? @user and @user.to_s.strip.length != 0
+        target[:params][:account] = @user
+      end
+      # authenticate against the realm
+      uri = URI.parse(target[:realm])
+      uri.user = @user if defined? @user
+      uri.password = @password if defined? @password
+      begin
+        response = RestClient.get uri.to_s, {params: target[:params]}
+      rescue RestClient::Unauthorized
+        # bad authentication
+        raise DockerRegistry::RegistryAuthenticationException
+      end
+      # now save the web token
+      return JSON.parse(response)["token"]
+    end
+
+    def split_auth_header(header = '')
+      h = Hash.new
+      h = {params: {}}
+      header.split(/[\s,]+/).each {|entry|
+        p = entry.split('=')
+        case p[0]
+        when 'Bearer'
+        when 'realm'
+          h[:realm] = p[1].gsub(/(^\"|\"$)/,'')
+        else
+          h[:params][p[0]] = p[1].gsub(/(^\"|\"$)/,'')
+        end
+      }
+      h
+    end
 end
