@@ -15,4 +15,8 @@ module DockerRegistry
   def self.tags(repository)
     @reg.tags(repository)
   end  
+  
+  def self.manifest(repository,tag)
+    @reg.manifest(repository,tag)
+  end
 end

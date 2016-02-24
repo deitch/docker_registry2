@@ -20,4 +20,7 @@ module DockerRegistry
   
   class UnknownRegistryException < Exception
   end
+
+  class InvalidMethod < Exception
+  end
 end
