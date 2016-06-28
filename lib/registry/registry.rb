@@ -95,9 +95,14 @@ class DockerRegistry::Registry
   end
   
   private
-    def doreq(type,url)
+    def doreq(type,url,stream=nil)
       begin
-        response = RestClient::Request.execute method: type, url: @base_uri+url
+        block = stream.nil? ? nil : proc { |response|
+          response.read_body do |chunk|
+            stream.write chunk
+          end
+        }
+        response = RestClient::Request.execute method: type, url: @base_uri+url, headers: {Accept: 'application/vnd.docker.distribution.manifest.v2+json'}, block_response: block
       rescue SocketError
         raise DockerRegistry::RegistryUnknownException
       rescue RestClient::Unauthorized => e
@@ -105,9 +110,9 @@ class DockerRegistry::Registry
         method = header.downcase.split(' ')[0]
         case method
         when 'basic'
-          response = do_basic_req(type, url)
+          response = do_basic_req(type, url, stream)
         when 'bearer'
-          response = do_bearer_req(type, url, header)
+          response = do_bearer_req(type, url, header, stream)
         else
           raise DockerRegistry::RegistryUnknownException
         end
@@ -115,9 +120,14 @@ class DockerRegistry::Registry
       return response
     end
 
-    def do_basic_req(type, url)
+    def do_basic_req(type, url, stream=nil)
       begin
-        response = RestClient::Request.execute method: type, url: @base_uri+url, user: @user, password: @password
+        block = stream.nil? ? nil : proc { |response|
+          response.read_body do |chunk|
+            stream.write chunk
+          end
+        }
+        response = RestClient::Request.execute method: type, url: @base_uri+url, user: @user, password: @password, headers: {Accept: 'application/vnd.docker.distribution.manifest.v2+json'}, block_response: block
       rescue SocketError
         raise DockerRegistry::RegistryUnknownException
       rescue RestClient::Unauthorized
@@ -128,10 +138,15 @@ class DockerRegistry::Registry
       return response
     end
 
-    def do_bearer_req(type, url, header)
+    def do_bearer_req(type, url, header, stream=false)
       token = authenticate_bearer(header)
       begin
-        response = RestClient::Request.execute method: type, url: @base_uri+url, headers: {Authorization: 'Bearer '+token}
+        block = stream.nil? ? nil : proc { |response|
+          response.read_body do |chunk|
+            stream.write chunk
+          end
+        }
+        response = RestClient::Request.execute method: type, url: @base_uri+url, headers: {Authorization: 'Bearer '+token, Accept: 'application/vnd.docker.distribution.manifest.v2+json'}, block_response: block
       rescue SocketError
         raise DockerRegistry::RegistryUnknownException
       rescue RestClient::Unauthorized
