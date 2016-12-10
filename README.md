@@ -19,7 +19,7 @@ Inspired by https://github.com/rosylilly/docker_registry but written separately.
 
 Add the following to your Gemfile:
 
-    gem 'docker_registry2`
+    gem 'docker_registry2'
 
 And execute:
 
