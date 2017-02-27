@@ -1,4 +1,4 @@
-module DockerRegistry
+module DockerRegistry2
   class Exception < RuntimeError
     
   end

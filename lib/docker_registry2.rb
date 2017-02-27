@@ -3,9 +3,9 @@ require File.dirname(__FILE__) + '/registry/registry'
 require File.dirname(__FILE__) + '/registry/exceptions'
 
 
-module DockerRegistry
+module DockerRegistry2
   def self.connect(uri)
-    @reg = DockerRegistry::Registry.new(uri)
+    @reg = DockerRegistry2::Registry.new(uri)
   end  
   
   def self.search(query = '')
