@@ -2,7 +2,7 @@ require 'fileutils'
 require 'rest-client'
 require 'json'
 
-class DockerRegistry::Registry
+class DockerRegistry2::Registry
   # @param [#to_s] base_uri Docker registry base URI
   # @param [Hash] options Client options
   # @option options [#to_s] :user User name for basic authentication
@@ -53,7 +53,7 @@ class DockerRegistry::Registry
         else
           begin
             head = dohead "/v2/#{repo}/manifests/#{tag}"
-          rescue DockerRegistry::InvalidMethod
+          rescue DockerRegistry2::InvalidMethod
             # in case we are in a registry pre-2.3.0, which did not support manifest HEAD
             useGet = true
             head = doget "/v2/#{repo}/manifests/#{tag}"
@@ -104,7 +104,7 @@ class DockerRegistry::Registry
         }
         response = RestClient::Request.execute method: type, url: @base_uri+url, headers: {Accept: 'application/vnd.docker.distribution.manifest.v2+json'}, block_response: block
       rescue SocketError
-        raise DockerRegistry::RegistryUnknownException
+        raise DockerRegistry2::RegistryUnknownException
       rescue RestClient::Unauthorized => e
         header = e.response.headers[:www_authenticate]
         method = header.downcase.split(' ')[0]
@@ -114,7 +114,7 @@ class DockerRegistry::Registry
         when 'bearer'
           response = do_bearer_req(type, url, header, stream)
         else
-          raise DockerRegistry::RegistryUnknownException
+          raise DockerRegistry2::RegistryUnknownException
         end
       end
       return response
@@ -129,11 +129,11 @@ class DockerRegistry::Registry
         }
         response = RestClient::Request.execute method: type, url: @base_uri+url, user: @user, password: @password, headers: {Accept: 'application/vnd.docker.distribution.manifest.v2+json'}, block_response: block
       rescue SocketError
-        raise DockerRegistry::RegistryUnknownException
+        raise DockerRegistry2::RegistryUnknownException
       rescue RestClient::Unauthorized
-        raise DockerRegistry::RegistryAuthenticationException
+        raise DockerRegistry2::RegistryAuthenticationException
       rescue RestClient::MethodNotAllowed
-        raise DockerRegistry::InvalidMethod
+        raise DockerRegistry2::InvalidMethod
       end
       return response
     end
@@ -148,11 +148,11 @@ class DockerRegistry::Registry
         }
         response = RestClient::Request.execute method: type, url: @base_uri+url, headers: {Authorization: 'Bearer '+token, Accept: 'application/vnd.docker.distribution.manifest.v2+json'}, block_response: block
       rescue SocketError
-        raise DockerRegistry::RegistryUnknownException
+        raise DockerRegistry2::RegistryUnknownException
       rescue RestClient::Unauthorized
-        raise DockerRegistry::RegistryAuthenticationException
+        raise DockerRegistry2::RegistryAuthenticationException
       rescue RestClient::MethodNotAllowed
-        raise DockerRegistry::InvalidMethod
+        raise DockerRegistry2::InvalidMethod
       end
 
       return response
@@ -173,7 +173,7 @@ class DockerRegistry::Registry
         response = RestClient.get uri.to_s, {params: target[:params]}
       rescue RestClient::Unauthorized
         # bad authentication
-        raise DockerRegistry::RegistryAuthenticationException
+        raise DockerRegistry2::RegistryAuthenticationException
       end
       # now save the web token
       return JSON.parse(response)["token"]

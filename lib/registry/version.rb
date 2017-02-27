@@ -1,3 +1,3 @@
-module DockerRegistry
-  VERSION = '0.3.0'
+module DockerRegistry2
+  VERSION = '0.4.0'
 end

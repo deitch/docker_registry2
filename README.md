@@ -5,7 +5,7 @@
 This is a simple gem that provides direct http access to a docker registry v2 without going through a docker server. You do **not** requires docker installed on your system to provide access.
 
 ````ruby
-reg = DockerRegistry.connect("https://my.registy.corp.com")
+reg = DockerRegistry2.connect("https://my.registy.corp.com")
 repos = reg.search("foo/repo")
 tags = reg.tags("foo/repo")
 ````
@@ -14,6 +14,14 @@ Supports anonymous access, http authorization and v2 token access.
 
 Inspired by https://github.com/rosylilly/docker_registry but written separately.
 
+#### Note
+
+Prior to version 0.4.0, the name used was DockerRegistry. As of 0.4.0 it is DockerRegistry2.
+If you still need DockerRegistry, just create an alias with:
+
+````ruby
+DockerRegistry = DockerRegistry2
+````
 
 ## Installation
 
@@ -35,7 +43,7 @@ Once it is installed, you first *open* a connection to a registry, and then *req
 To connect to a registry:
 
 ````ruby
-reg = DockerRegistry.connect("https://my.registy.corp.com")
+reg = DockerRegistry2.connect("https://my.registy.corp.com")
 ````
 
 The above will connect anonymously to the registry via the endpoint `https://my.registry.corp.com/v2/`.
@@ -50,7 +58,7 @@ The following exceptions are thrown:
 If you wish to authenticate, pass a username and password as part of the URL.
 
 ````ruby
-reg = DockerRegistry.connect("https://myuser:mypass@my.registy.corp.com")
+reg = DockerRegistry2.connect("https://myuser:mypass@my.registy.corp.com")
 ````
 
 The following exceptions are thrown:
@@ -62,7 +70,7 @@ The following exceptions are thrown:
 
 
 ### Requests
-Once you have a valid `reg` object return by `DockerRegistry.connect()`, you can make requests. As of this version, only search and tags are supported. Others will be added over time.
+Once you have a valid `reg` object return by `DockerRegistry2.connect()`, you can make requests. As of this version, only search and tags are supported. Others will be added over time.
 
 
 #### search
@@ -239,7 +247,7 @@ The following exceptions are thrown:
 
 ### Exceptions
 
-All exceptions thrown inherit from `DockerRegistry::Exception`.
+All exceptions thrown inherit from `DockerRegistry2::Exception`.
 
 ## Tests
 The simplest way to test is against a true v2 registry. Thus, the test setup and teardown work against a docker registry. That means that to test, you need a docker engine running. The tests will start up a registry (actually, two registries, to be able to test `copy()`), initialize the data and test against them.
