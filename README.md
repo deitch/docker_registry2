@@ -38,6 +38,17 @@ And execute:
 Once it is installed, you first *open* a connection to a registry, and then *request* from the registry.
 
 ### Connecting
+Use the `connect` method to connect to a registry:
+
+````ruby
+reg = DockerRegistry2.connect("https://my.registy.corp.com")
+````
+
+If you do not provide the URL for a registry, it uses the default `https://registry.hub.docker.com`.
+
+
+
+You can connect anonymously or with credentials:
 
 #### Anonymous
 To connect to a registry:
