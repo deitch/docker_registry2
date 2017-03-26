@@ -44,7 +44,7 @@ class DockerRegistry2::Registry
     # parse the response
     resp = JSON.parse response
     # do we include the hashes?
-    if withHashes then 
+    if withHashes then
       useGet = false
       resp["hashes"] = {}
       resp["tags"].each {|tag|
@@ -62,15 +62,15 @@ class DockerRegistry2::Registry
         resp["hashes"][tag] = head.headers[:docker_content_digest]
       }
     end
-    
+
     return resp
   end
-  
+
   def manifest(repo,tag)
     # first get the manifest
     JSON.parse doget "/v2/#{repo}/manifests/#{tag}"
   end
-  
+
   def pull(repo,tag,dir)
     # make sure the directory exists
     FileUtils::mkdir_p dir
@@ -84,16 +84,23 @@ class DockerRegistry2::Registry
       end
     }
   end
-  
+
   def push(manifest,dir)
   end
-  
+
   def tag(repo,tag,newrepo,newtag)
   end
-  
+
   def copy(repo,tag,newregistry,newrepo,newtag)
   end
-  
+
+  # gets the size of a particular blob, given the repo and the content-addressable hash
+  # usually unneeded, since manifest includes it
+  def blob_size(repo,blobSum)
+    response = dohead "/v2/#{repo}/blobs/#{blobSum}"
+    Integer(response.headers[:content_length],10)
+  end
+
   private
     def doreq(type,url,stream=nil)
       begin
