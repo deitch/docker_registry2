@@ -4,18 +4,18 @@ require File.dirname(__FILE__) + '/registry/exceptions'
 
 
 module DockerRegistry2
-  def self.connect(uri)
+  def self.connect(uri="https://registry.hub.docker.com")
     @reg = DockerRegistry2::Registry.new(uri)
-  end  
-  
+  end
+
   def self.search(query = '')
     @reg.search(query)
   end
 
   def self.tags(repository)
     @reg.tags(repository)
-  end  
-  
+  end
+
   def self.manifest(repository,tag)
     @reg.manifest(repository,tag)
   end
