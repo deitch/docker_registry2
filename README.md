@@ -78,7 +78,7 @@ Once you have a valid `reg` object return by `DockerRegistry2.connect()`, you ca
 results = reg.search("mylibs")
 ````
 
-Returns all repositories whose name contains `"mylibs"`. 
+Returns all repositories whose name contains `"mylibs"`.
 
 **Note:** The v2 registry does not support search directly server-side. Thus, this is simulated by using the `catalog/` endpoint. It is highly recommended to avoid using this function until the v2 registry supports direct search, as it will be slow. It pulls a list of all repositories to the client and then does a pattern match on them.
 
@@ -126,7 +126,7 @@ The response structure looks something like this:
 }
 ````
 
-It is important to note that the hashes **may** or **may not** match the hashes that you receive when running `docker images` on your machine. These are the hashes returned by the `Docker-Content-Digest` for the manifest. See [v2 API Spec](https://docs.docker.com/registry/spec/api/#get-manifest). 
+It is important to note that the hashes **may** or **may not** match the hashes that you receive when running `docker images` on your machine. These are the hashes returned by the `Docker-Content-Digest` for the manifest. See [v2 API Spec](https://docs.docker.com/registry/spec/api/#get-manifest).
 
 These **may** or **may not** be useful for comparing to the local image on disk when running `docker images`. These **are** useful for comparing 2 different tags or images in one or more registries.
 
@@ -244,6 +244,26 @@ The following exceptions are thrown:
 * `RegistryAuthenticationException`: username and password are invalid
 * `RegistryAuthorizationException`: registry does not support your deleting the given repository, probably because you do not have sufficient access rights.
 
+#### Layer sizes
+If you want to get the sizes of one or more layers in an image, you have several convenience functions available.
+
+##### Total Size
+If you want to add up easily all of the layers in a manifest (which, of course, should equal the total size of the image), you can pass the manifest to the `manifest_sum` method.
+
+```ruby
+manifest = reg.manifest "library/ubuntu", "16.04"
+totalSize = reg.manifest_sum manifest
+```
+
+##### Single Blob
+If you have the repo name and the sha256 hash for the blob, you can get the size of the layer by doing:
+
+```ruby
+reg.blob_size "namespace/repo", "sha256:abc5634737434"
+```
+
+Of course, most of the time you won't need this, since the sizes are already included in the same place you got the blob hashes in the first place: the manifest.
+
 
 ### Exceptions
 
@@ -258,10 +278,6 @@ MIT License.
 
 ## Contribution
 
-Developed by Avi Deitcher http://github.com/deitch 
+Developed by Avi Deitcher http://github.com/deitch
 Contributors Jonathan Hurter https://github.com/johnsudaar
 Contributions courtesy of TraderTools, Inc. http://tradertools.com
-
-
-
-

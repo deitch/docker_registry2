@@ -77,7 +77,7 @@ class DockerRegistry2::Registry
     # get the manifest
     m = manifest repo,tag
     # pull each of the layers
-    layers = m["fsLayers"].each { |layer|
+    layers = m["layers"].each { |layer|
       # make sure the layer does not exist first
       if ! File.file? "#{dir}/#{layer.blobSum}" then
         doget "/v2/#{repo}/blobs/#{layer.blobSum}" "#{dir}/#{layer.blobSum}"
@@ -99,6 +99,14 @@ class DockerRegistry2::Registry
   def blob_size(repo,blobSum)
     response = dohead "/v2/#{repo}/blobs/#{blobSum}"
     Integer(response.headers[:content_length],10)
+  end
+
+  def manifest_sum(manifest)
+    size = 0
+    manifest["layers"].each { |layer|
+      size += layer["size"]
+    }
+    size
   end
 
   private
