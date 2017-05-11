@@ -20,6 +20,10 @@ class DockerRegistry2::Registry
     return doreq "get", url
   end
 
+  def dodelete(url)
+    return doreq "delete", url
+  end
+
   def dohead(url)
     return doreq "head", url
   end
@@ -71,13 +75,20 @@ class DockerRegistry2::Registry
     JSON.parse doget "/v2/#{repo}/manifests/#{tag}"
   end
 
+  def rmtag(image, tag)
+    # TODO: Need full response back. Rewrite other manifests() calls without JSON?
+    reference = doget("/v2/#{image}/manifests/#{tag}").headers[:docker_content_digest]
+
+    return dodelete("/v2/#{image}/manifests/#{reference}").code
+  end
+
   def pull(repo,tag,dir)
     # make sure the directory exists
     FileUtils::mkdir_p dir
     # get the manifest
     m = manifest repo,tag
     # pull each of the layers
-    layers = m["layers"].each { |layer|
+    m["layers"].each { |layer|
       # make sure the layer does not exist first
       if ! File.file? "#{dir}/#{layer.blobSum}" then
         doget "/v2/#{repo}/blobs/#{layer.blobSum}" "#{dir}/#{layer.blobSum}"
@@ -185,6 +196,8 @@ class DockerRegistry2::Registry
       uri.user = @user if defined? @user
       uri.password = @password if defined? @password
       begin
+        # FIXME: This should be set with the rest of the headers
+        # target[:params]['scope'] = 'repository'
         response = RestClient.get uri.to_s, {params: target[:params]}
       rescue RestClient::Unauthorized
         # bad authentication
