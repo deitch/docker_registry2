@@ -66,11 +66,15 @@ The following exceptions are thrown:
 * `RegistrySSLException`: registry SSL certificate cannot be validated
 
 #### Authenticated
-If you wish to authenticate, pass a username and password as part of the URL.
+If you wish to authenticate, pass a username and password as part of the options to `DockerRegistry.connect`.
 
 ````ruby
-reg = DockerRegistry2.connect("https://myuser:mypass@my.registy.corp.com")
+url = "https://my.registy.corp.com"
+opts = {user: "me", password: "secretstuff"}
+reg = DockerRegistry2.connect(url,opts)
 ````
+
+**Note:** Older versions prior to 1.0.0 _used_ to support putting the username and password in the URL. We no longer support it as it is **strongly** discouraged in RFCs. Put it in the `opts` hash.
 
 The following exceptions are thrown:
 

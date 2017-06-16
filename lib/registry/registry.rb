@@ -10,8 +10,8 @@ class DockerRegistry2::Registry
   def initialize(uri, options = {})
     @uri = URI.parse(uri)
     @base_uri = "#{@uri.scheme}://#{@uri.host}:#{@uri.port}"
-    @user = @uri.user
-    @password = @uri.password
+    @user = options[:user]
+    @password = options[:password]
     # make a ping connection
     ping
   end
@@ -193,12 +193,8 @@ class DockerRegistry2::Registry
       end
       # authenticate against the realm
       uri = URI.parse(target[:realm])
-      uri.user = @user if defined? @user
-      uri.password = @password if defined? @password
       begin
-        # FIXME: This should be set with the rest of the headers
-        # target[:params]['scope'] = 'repository'
-        response = RestClient.get uri.to_s, {params: target[:params]}
+        response = RestClient::Request.execute method: :get, url: uri.to_s, headers: {params: target[:params]}, user: @user, password: @password
       rescue RestClient::Unauthorized
         # bad authentication
         raise DockerRegistry2::RegistryAuthenticationException
