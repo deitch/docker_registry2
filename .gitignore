@@ -1,1 +1,3 @@
 docker_registry2*.gem
+.bundle/*
+Gemfile.lock
