@@ -7,11 +7,15 @@ class DockerRegistry2::Registry
   # @param [Hash] options Client options
   # @option options [#to_s] :user User name for basic authentication
   # @option options [#to_s] :password Password for basic authentication
+  # @option options [#to_s] :open_timeout Time to wait for a connection with a registry
+  # @option options [#to_s] :read_timeout Time to wait for data from a registry
   def initialize(uri, options = {})
     @uri = URI.parse(uri)
     @base_uri = "#{@uri.scheme}://#{@uri.host}:#{@uri.port}"
     @user = options[:user]
     @password = options[:password]
+    @open_timeout = options[:open_timeout] || 2
+    @read_timeout = options[:read_timeout] || 5
   end
 
   def doget(url)
@@ -126,7 +130,14 @@ class DockerRegistry2::Registry
             stream.write chunk
           end
         }
-        response = RestClient::Request.execute method: type, url: @base_uri+url, headers: {Accept: 'application/vnd.docker.distribution.manifest.v2+json'}, block_response: block
+        response = RestClient::Request.execute(
+          method: type,
+          url: @base_uri+url,
+          headers: {Accept: 'application/vnd.docker.distribution.manifest.v2+json'},
+          block_response: block,
+          open_timeout: @open_timeout,
+          read_timeout: @read_timeout
+        )
       rescue SocketError
         raise DockerRegistry2::RegistryUnknownException
       rescue RestClient::Unauthorized => e
@@ -151,7 +162,16 @@ class DockerRegistry2::Registry
             stream.write chunk
           end
         }
-        response = RestClient::Request.execute method: type, url: @base_uri+url, user: @user, password: @password, headers: {Accept: 'application/vnd.docker.distribution.manifest.v2+json'}, block_response: block
+        response = RestClient::Request.execute(
+          method: type,
+          url: @base_uri+url,
+          user: @user,
+          password: @password,
+          headers: {Accept: 'application/vnd.docker.distribution.manifest.v2+json'},
+          block_response: block,
+          open_timeout: @open_timeout,
+          read_timeout: @read_timeout
+        )
       rescue SocketError
         raise DockerRegistry2::RegistryUnknownException
       rescue RestClient::Unauthorized
@@ -170,7 +190,14 @@ class DockerRegistry2::Registry
             stream.write chunk
           end
         }
-        response = RestClient::Request.execute method: type, url: @base_uri+url, headers: {Authorization: 'Bearer '+token, Accept: 'application/vnd.docker.distribution.manifest.v2+json'}, block_response: block
+        response = RestClient::Request.execute(
+          method: type,
+          url: @base_uri+url,
+          headers: {Authorization: 'Bearer '+token, Accept: 'application/vnd.docker.distribution.manifest.v2+json'},
+          block_response: block,
+          open_timeout: @open_timeout,
+          read_timeout: @read_timeout
+        )
       rescue SocketError
         raise DockerRegistry2::RegistryUnknownException
       rescue RestClient::Unauthorized
@@ -192,7 +219,14 @@ class DockerRegistry2::Registry
       # authenticate against the realm
       uri = URI.parse(target[:realm])
       begin
-        response = RestClient::Request.execute method: :get, url: uri.to_s, headers: {params: target[:params]}, user: @user, password: @password
+        response = RestClient::Request.execute(
+          method: :get,
+          url: uri.to_s, headers: {params: target[:params]},
+          user: @user,
+          password: @password,
+          open_timeout: @open_timeout,
+          read_timeout: @read_timeout
+        )
       rescue RestClient::Unauthorized
         # bad authentication
         raise DockerRegistry2::RegistryAuthenticationException
