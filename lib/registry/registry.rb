@@ -12,8 +12,6 @@ class DockerRegistry2::Registry
     @base_uri = "#{@uri.scheme}://#{@uri.host}:#{@uri.port}"
     @user = options[:user]
     @password = options[:password]
-    # make a ping connection
-    ping
   end
 
   def doget(url)
