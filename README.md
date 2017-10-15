@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This is a simple gem that provides direct http access to a docker registry v2 without going through a docker server. You do **not** requires docker installed on your system to provide access.
+This is a simple gem that provides direct http access to a docker registry v2 without going through a docker server. You do **not** require docker installed on your system to provide access.
 
 ````ruby
 reg = DockerRegistry2.connect("https://my.registy.corp.com")
@@ -46,7 +46,14 @@ reg = DockerRegistry2.connect("https://my.registy.corp.com")
 
 If you do not provide the URL for a registry, it uses the default `https://registry.hub.docker.com`.
 
+By default, requests to the registry will timeout if they take over 2 seconds to
+connect or over 5 seconds to respond. You can set different thresholds when
+connecting to a registry as follows:
 
+```ruby
+opts = { open_timeout: 2, read_timeout: 5 }
+reg = DockerRegistry2.connect("https://my.registy.corp.com", opts)
+```
 
 You can connect anonymously or with credentials:
 
