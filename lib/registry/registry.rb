@@ -84,18 +84,61 @@ class DockerRegistry2::Registry
     return dodelete("/v2/#{image}/manifests/#{reference}").code
   end
 
-  def pull(repo,tag,dir)
+  def pull(repo, tag, dir)
     # make sure the directory exists
-    FileUtils::mkdir_p dir
+    FileUtils.mkdir_p dir
     # get the manifest
-    m = manifest repo,tag
+    m = manifest repo, tag
+    # puts "pulling #{repo}:#{tag} into #{dir}"
+    # manifest can contain multiple manifests one for each API version
+    downloaded_layers = []
+    downloaded_layers += _pull_v2(repo, m, dir) if m['schemaVersion'] == 2
+    downloaded_layers += _pull_v1(repo, m, dir) if m['schemaVersion'] == 1
+    # return downloaded_layers
+    downloaded_layers
+  end
+
+  def _pull_v2(repo, manifest, dir)
+    # make sure the directory exists
+    FileUtils.mkdir_p dir
+    return false unless manifest['schemaVersion'] == 2
     # pull each of the layers
-    m["layers"].each { |layer|
-      # make sure the layer does not exist first
-      if ! File.file? "#{dir}/#{layer.blobSum}" then
-        doget "/v2/#{repo}/blobs/#{layer.blobSum}" "#{dir}/#{layer.blobSum}"
+    manifest['layers'].each do |layer|
+      # define path of file to save layer in
+      layer_file = "#{dir}/#{layer['digest']}"
+      # skip layer if we already got it
+      next if File.file? layer_file
+      # download layer
+      # puts "getting layer (v2) #{layer['digest']}"
+      File.open(layer_file, 'w') do |fd|
+        doreq('get',
+              "/v2/#{repo}/blobs/#{layer['digest']}",
+              fd)
       end
-    }
+      layer_file
+    end
+  end
+
+  def _pull_v1(repo, manifest, dir)
+    # make sure the directory exists
+    FileUtils.mkdir_p dir
+    return false unless manifest['schemaVersion'] == 1
+    # pull each of the layers
+    manifest['fsLayers'].each do |layer|
+      # define path of file to save layer in
+      layer_file = "#{dir}/#{layer['blobSum']}"
+      # skip layer if we already got it
+      next if File.file? layer_file
+      # download layer
+      # puts "getting layer (v1) #{layer['blobSum']}"
+      File.open(layer_file, 'w') do |fd|
+        doreq('get',
+              "/v2/#{repo}/blobs/#{layer['blobSum']}",
+              fd)
+      end
+      # return layer file
+      layer_file
+    end
   end
 
   def push(manifest,dir)
