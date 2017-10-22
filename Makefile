@@ -12,3 +12,6 @@ $(GEM):
 
 clean:
 	rm -rf docker_registry2*.gem
+
+test:
+	./test.sh
