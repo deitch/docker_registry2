@@ -1,3 +1,8 @@
+## v1.3.0, 22 October 2017
+
+- Add basic tests
+- Add support for both v1 and v2 schemas thanks to https://github.com/lehn-etracker
+
 ## v1.2.0, 15 October 2017
 
 - Add shorter default timeouts. Previously, the RestClient default of 60 seconds
