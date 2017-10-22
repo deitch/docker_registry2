@@ -1,3 +1,5 @@
+.PHONY: build test deploy all clean
+
 GEM ?= $(shell ruby ./get-gem-name.rb)
 
 all: deploy
