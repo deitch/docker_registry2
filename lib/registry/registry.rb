@@ -247,6 +247,8 @@ class DockerRegistry2::Registry
         raise DockerRegistry2::RegistryAuthenticationException
       rescue RestClient::MethodNotAllowed
         raise DockerRegistry2::InvalidMethod
+      rescue RestClient::NotFound => error
+        raise DockerRegistry2::NotFound, error
       end
 
       return response

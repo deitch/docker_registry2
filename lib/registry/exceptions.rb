@@ -21,6 +21,9 @@ module DockerRegistry2
   class UnknownRegistryException < Exception
   end
 
+  class NotFound < Exception
+  end
+
   class InvalidMethod < Exception
   end
 end
