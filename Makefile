@@ -7,6 +7,8 @@ all: deploy
 deploy: build
 	gem push $(GEM)
 
+push: deploy
+
 build: $(GEM)
 
 $(GEM):
