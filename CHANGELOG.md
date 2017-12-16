@@ -1,3 +1,11 @@
+## v1.3.2, 15 December 2017
+
+- Use DockerRegistry2::NotFound in basic request calls (as well as bearer ones)
+
+## v1.3.1, 15 December 2017
+
+- New DockerRegistry2::NotFound exceptions
+
 ## v1.3.0, 22 October 2017
 
 - Add basic tests
