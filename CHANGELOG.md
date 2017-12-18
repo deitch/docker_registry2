@@ -1,3 +1,7 @@
+## v1.3.3, 18 December 2017
+
+- Use DockerRegistry2::NotFound in unauthenticated request calls
+
 ## v1.3.2, 15 December 2017
 
 - Use DockerRegistry2::NotFound in basic request calls (as well as bearer ones)
