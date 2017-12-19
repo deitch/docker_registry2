@@ -183,6 +183,8 @@ class DockerRegistry2::Registry
         )
       rescue SocketError
         raise DockerRegistry2::RegistryUnknownException
+      rescue RestClient::NotFound => error
+        raise DockerRegistry2::NotFound, error
       rescue RestClient::Unauthorized => e
         header = e.response.headers[:www_authenticate]
         method = header.downcase.split(' ')[0]
@@ -277,6 +279,8 @@ class DockerRegistry2::Registry
       rescue RestClient::Unauthorized
         # bad authentication
         raise DockerRegistry2::RegistryAuthenticationException
+      rescue RestClient::NotFound => error
+        raise DockerRegistry2::NotFound, error
       end
       # now save the web token
       return JSON.parse(response)["token"]
