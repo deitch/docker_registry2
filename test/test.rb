@@ -15,6 +15,9 @@ end
 # can we read the manifest?
 manifest = reg.manifest image, "latest"
 
+# can we get the digest?
+digest = reg.digest image, "latest"
+
 # can we pull an image?
 tmpdir = Dir.mktmpdir
 begin
