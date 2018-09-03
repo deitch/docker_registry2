@@ -178,10 +178,10 @@ The following exceptions are thrown:
 
 #### digest
 ````ruby
-manifest = reg.digest("namespace/repo", "2.5.6")
+digest = reg.digest("namespace/repo", "2.5.6")
 ````
 
-Returns the digest for the given tag of the given repository.
+Returns the digest for the manifest represented by the tag of the given repository.
 
 #### pull
 ````ruby
