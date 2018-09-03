@@ -176,6 +176,13 @@ The following exceptions are thrown:
 * `RegistryAuthenticationException`: username and password are invalid
 * `RegistryAuthorizationException`: registry does not support tags using the given credentials, probably because the repository is private and the credentials provided do not have access
 
+#### digest
+````ruby
+digest = reg.digest("namespace/repo", "2.5.6")
+````
+
+Returns the digest for the manifest represented by the tag of the given repository.
+
 #### pull
 ````ruby
 reg.pull("namespace/repo","2.5.6",dir)

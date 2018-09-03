@@ -77,6 +77,14 @@ class DockerRegistry2::Registry
     JSON.parse doget "/v2/#{repo}/manifests/#{tag}"
   end
 
+  def digest(repo, tag)
+    tag_path = "/v2/#{repo}/manifests/#{tag}"
+    dohead(tag_path).headers[:docker_content_digest]
+  rescue DockerRegistry2::InvalidMethod
+    # Pre-2.3.0 registries didn't support manifest HEAD requests
+    doget(tag_path).headers[:docker_content_digest]
+  end
+
   def rmtag(image, tag)
     # TODO: Need full response back. Rewrite other manifests() calls without JSON?
     reference = doget("/v2/#{image}/manifests/#{tag}").headers[:docker_content_digest]

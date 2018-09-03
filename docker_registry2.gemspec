@@ -6,7 +6,12 @@ require 'registry/version'
 Gem::Specification.new do |spec|
   spec.name          = 'docker_registry2'
   spec.version       = DockerRegistry2::VERSION
-  spec.authors       = ['Avi Deitcher https://github.com/deitch', 'Jonathan Hurter https://github.com/johnsudaar', 'Dmitry Fleytman https://github.com/dmitryfleytman']
+  spec.authors       = [
+                         'Avi Deitcher https://github.com/deitch',
+                         'Jonathan Hurter https://github.com/johnsudaar',
+                         'Dmitry Fleytman https://github.com/dmitryfleytman',
+                         'Grey Baker https://github.com/greysteil'
+                       ]
   spec.summary       = 'Docker v2 registry HTTP API client'
   spec.description   = 'Docker v2 registry HTTP API client with support for token authentication'
   spec.homepage      = 'https://github.com/deitch/docker_registry2'
