@@ -284,7 +284,7 @@ class DockerRegistry2::Registry
           open_timeout: @open_timeout,
           read_timeout: @read_timeout
         )
-      rescue RestClient::Unauthorized
+      rescue RestClient::Unauthorized, RestClient::Forbidden
         # bad authentication
         raise DockerRegistry2::RegistryAuthenticationException
       rescue RestClient::NotFound => error
