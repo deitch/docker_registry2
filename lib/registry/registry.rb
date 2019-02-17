@@ -291,7 +291,8 @@ class DockerRegistry2::Registry
         raise DockerRegistry2::NotFound, error
       end
       # now save the web token
-      return JSON.parse(response)["token"]
+      result = JSON.parse(response)
+      return result["token"] || result["access_token"]
     end
 
     def split_auth_header(header = '')
