@@ -232,7 +232,7 @@ The following exceptions are thrown:
 
 * `RegistryAuthenticationException`: username and password are invalid
 * `RegistryAuthorizationException`: registry does not support pushing the layers or uploading the manifest using the given credentials, probably because the repository is private and the credentials provided do not have access
-* `RegisteryVersionException`: You're not running a registry that supports the v2 API.
+* `RegisteryVersionException`: registry does not support the v2 API.
 
 #### copy
 > WARNING: Unimplemented

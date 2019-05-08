@@ -312,16 +312,14 @@ class DockerRegistry2::Registry
     def split_auth_header(header = '')
       h = Hash.new
       h = {params: {}}
-      header.split(/[\s,]+/).each {|entry|
-        p = entry.split('=')
-        case p[0]
-        when 'Bearer'
+      header.scan(/([\w]+)\=\"([^"]+)\"/) do |entry|
+        case entry[0]
         when 'realm'
-          h[:realm] = p[1].gsub(/(^\"|\"$)/,'')
+          h[:realm] = entry[1]
         else
-          h[:params][p[0]] = p[1].gsub(/(^\"|\"$)/,'')
+          h[:params][entry[0]] = entry[1]
         end
-      }
+      end
       h
     end
 
