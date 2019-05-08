@@ -22,6 +22,10 @@ class DockerRegistry2::Registry
     return doreq "get", url
   end
 
+  def doput(url,payload=nil)
+    return doreq "put", url, nil, payload
+  end
+
   def dodelete(url)
     return doreq "delete", url
   end
@@ -153,6 +157,13 @@ class DockerRegistry2::Registry
   end
 
   def tag(repo,tag,newrepo,newtag)
+    manifest = manifest(repo, tag)
+
+    if manifest['schemaVersion'] == 2
+      doput "/v2/#{newrepo}/manifests/#{newtag}", manifest.to_json
+    else
+      raise DockerRegistry2::RegistryVersionException
+    end
   end
 
   def copy(repo,tag,newregistry,newrepo,newtag)
@@ -174,7 +185,7 @@ class DockerRegistry2::Registry
   end
 
   private
-    def doreq(type,url,stream=nil)
+    def doreq(type,url,stream=nil,payload=nil)
       begin
         block = stream.nil? ? nil : proc { |response|
           response.read_body do |chunk|
@@ -184,10 +195,11 @@ class DockerRegistry2::Registry
         response = RestClient::Request.execute(
           method: type,
           url: @base_uri+url,
-          headers: {Accept: 'application/vnd.docker.distribution.manifest.v2+json'},
+          headers: headers(payload: payload),
           block_response: block,
           open_timeout: @open_timeout,
-          read_timeout: @read_timeout
+          read_timeout: @read_timeout,
+          payload: payload
         )
       rescue SocketError
         raise DockerRegistry2::RegistryUnknownException
@@ -198,9 +210,9 @@ class DockerRegistry2::Registry
         method = header.downcase.split(' ')[0]
         case method
         when 'basic'
-          response = do_basic_req(type, url, stream)
+          response = do_basic_req(type, url, stream, payload)
         when 'bearer'
-          response = do_bearer_req(type, url, header, stream)
+          response = do_bearer_req(type, url, header, stream, payload)
         else
           raise DockerRegistry2::RegistryUnknownException
         end
@@ -208,7 +220,7 @@ class DockerRegistry2::Registry
       return response
     end
 
-    def do_basic_req(type, url, stream=nil)
+    def do_basic_req(type, url, stream=nil, payload=nil)
       begin
         block = stream.nil? ? nil : proc { |response|
           response.read_body do |chunk|
@@ -220,10 +232,11 @@ class DockerRegistry2::Registry
           url: @base_uri+url,
           user: @user,
           password: @password,
-          headers: {Accept: 'application/vnd.docker.distribution.manifest.v2+json'},
+          headers: headers(payload: payload),
           block_response: block,
           open_timeout: @open_timeout,
-          read_timeout: @read_timeout
+          read_timeout: @read_timeout,
+          payload: payload
         )
       rescue SocketError
         raise DockerRegistry2::RegistryUnknownException
@@ -237,7 +250,7 @@ class DockerRegistry2::Registry
       return response
     end
 
-    def do_bearer_req(type, url, header, stream=false)
+    def do_bearer_req(type, url, header, stream=false, payload=nil)
       token = authenticate_bearer(header)
       begin
         block = stream.nil? ? nil : proc { |response|
@@ -248,10 +261,11 @@ class DockerRegistry2::Registry
         response = RestClient::Request.execute(
           method: type,
           url: @base_uri+url,
-          headers: {Authorization: 'Bearer '+token, Accept: 'application/vnd.docker.distribution.manifest.v2+json'},
+          headers: headers(payload: payload, bearer_token: token),
           block_response: block,
           open_timeout: @open_timeout,
-          read_timeout: @read_timeout
+          read_timeout: @read_timeout,
+          payload: payload
         )
       rescue SocketError
         raise DockerRegistry2::RegistryUnknownException
@@ -309,5 +323,14 @@ class DockerRegistry2::Registry
         end
       }
       h
+    end
+
+    def headers(payload: nil, bearer_token: nil)
+      headers={}
+      headers['Authorization']="Bearer #{bearer_token}" unless bearer_token.nil?
+      headers['Accept']='application/vnd.docker.distribution.manifest.v2+json' if payload.nil?
+      headers['Content-Type']='application/vnd.docker.distribution.manifest.v2+json' unless payload.nil?
+
+      headers
     end
 end

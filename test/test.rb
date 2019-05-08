@@ -11,8 +11,33 @@ if tags == nil || tags["name"] != image || tags["tags"] != ["latest"]
 	abort "Bad tags"
 end
 
+# Tests only to run against the v2 Registry API
+if version == "v2"
+	# can we add tags?
+	random_tag = ('a'..'z').to_a.shuffle[0,8].join
+	reg.tag image, "latest", image, random_tag
 
-# can we read the manifest?
+	# give the registry a chance to catch up
+	sleep 1
+
+	more_tags = reg.tags image
+	unless (more_tags["tags"] - [random_tag, "latest"]).empty?
+		abort "Failed to add tag"
+	end
+
+	# can we delete tags?
+	reg.rmtag image, random_tag
+
+	# give the registry a chance to catch up
+	sleep 1
+
+	even_more_tags = reg.tags image
+	if even_more_tags["tags"] != ["latest"]
+		abort "Failed to delete tag"
+	end
+end
+
+# can we read the manfiest?
 manifest = reg.manifest image, "latest"
 
 # can we get the digest?

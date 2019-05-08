@@ -14,6 +14,9 @@ module DockerRegistry2
 
   class RegistrySSLException < Exception
   end
+
+  class RegistryVersionException < Exception
+  end
   
   class ReauthenticatedException < Exception
   end
