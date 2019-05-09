@@ -200,6 +200,8 @@ The following exceptions are thrown:
 * `RegistryAuthorizationException`: registry does not support tags or pull using the given credentials, probably because the repository is private and the credentials provided do not have access.
 
 #### push
+> WARNING: Unimplemented
+
 ````ruby
 reg.push(manifest,dir)
 ````
@@ -230,8 +232,11 @@ The following exceptions are thrown:
 
 * `RegistryAuthenticationException`: username and password are invalid
 * `RegistryAuthorizationException`: registry does not support pushing the layers or uploading the manifest using the given credentials, probably because the repository is private and the credentials provided do not have access
+* `RegisteryVersionException`: registry does not support the v2 API.
 
 #### copy
+> WARNING: Unimplemented
+
 ````ruby
 reg.copy("namespace/repo","tag",newregistry,newrepo,newtag)
 ````
