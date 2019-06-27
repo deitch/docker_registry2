@@ -53,9 +53,9 @@ class DockerRegistry2::Registry
     #create query params
     params = []
     if last != ""
-      params.append(["last",last])
+      params.push(["last",last])
     end
-    params.append(["n",count])
+    params.push(["n",count])
 
     response = doget "/v2/#{repo}/tags/list?#{URI.encode_www_form(params)}"
     # parse the response
