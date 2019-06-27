@@ -49,10 +49,21 @@ class DockerRegistry2::Registry
     return repos
   end
 
-  def tags(repo,withHashes = false)
-    response = doget "/v2/#{repo}/tags/list"
+  def tags(repo,count=100,last="",withHashes = false)
+    #create query params
+    params = []
+    if last != ""
+      params.push(["last",last])
+    end
+    params.push(["n",count])
+
+    response = doget "/v2/#{repo}/tags/list?#{URI.encode_www_form(params)}"
     # parse the response
     resp = JSON.parse response
+    # parse out next page link if necessary
+    if response.headers[:link]
+      resp["last"] = last(response.headers[:link])
+    end
     # do we include the hashes?
     if withHashes then
       useGet = false
@@ -72,8 +83,7 @@ class DockerRegistry2::Registry
         resp["hashes"][tag] = head.headers[:docker_content_digest]
       }
     end
-
-    return resp
+    resp
   end
 
   def manifest(repo,tag)
@@ -174,6 +184,26 @@ class DockerRegistry2::Registry
   def blob_size(repo,blobSum)
     response = dohead "/v2/#{repo}/blobs/#{blobSum}"
     Integer(response.headers[:content_length],10)
+  end
+
+  def last(header)
+    last=''
+    parts = header.split(',')
+    links = Hash.new
+
+    # Parse each part into a named link
+    parts.each do |part, index|
+      section = part.split(';')
+      url = section[0][/<(.*)>/,1]
+      name = section[1][/rel="(.*)"/,1].to_sym
+      links[name] = url
+    end
+
+    if links[:next]
+      query=URI(links[:next]).query
+      last=URI::decode_www_form(query).to_h["last"]
+    end
+    last
   end
 
   def manifest_sum(manifest)
