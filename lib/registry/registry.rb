@@ -1,7 +1,6 @@
 require 'fileutils'
 require 'rest-client'
 require 'json'
-require 'addressable/uri'
 
 class DockerRegistry2::Registry
   # @param [#to_s] base_uri Docker registry base URI
