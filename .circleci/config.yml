@@ -4,7 +4,7 @@ version: 2.1
 jobs:
   ci:
     docker:
-      image: circleci/ruby:2.4.2-jessie
+      - image: circleci/ruby:2.4.2-jessie
     steps:
       - checkout
       - persist_to_workspace:
@@ -16,7 +16,7 @@ jobs:
           command: make build test
   deploy:
     docker:
-      image: circleci/ruby:2.4.2-jessie
+      - image: circleci/ruby:2.4.2-jessie
     steps:
       - run:
           name: push
