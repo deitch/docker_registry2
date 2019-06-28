@@ -366,6 +366,22 @@ All exceptions thrown inherit from `DockerRegistry2::Exception`.
 ## Tests
 The simplest way to test is against a true v2 registry. Thus, the test setup and teardown work against a docker registry. That means that to test, you need a docker engine running. The tests will start up a registry (actually, two registries, to be able to test `copy()`), initialize the data and test against them.
 
+To run tests, simply run
+
+```sh
+make test
+```
+
+This will run `./test.sh`, which will set up a docker registry in a container, run the tests, and then tear it down.
+
+If you are running on a system where you already have a registry against which to run, and/or cannot run `docker` commands, you can pass it the URL to which to connect for tests:
+
+```sh
+make test TEST_REGISTRY=http://registry:5000/   # replace with the URL to your registry
+# or to run manually
+TEST_REGISTRY=http://registry:5000/ ./test.sh
+```
+
 ## License
 
 MIT License.

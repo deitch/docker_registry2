@@ -2,7 +2,8 @@
 require 'tmpdir'
 require_relative '../lib/docker_registry2'
 version = ENV["VERSION"]
-reg = DockerRegistry2.connect "http://localhost:5000/"
+regurl = ENV["REGISTRY"]
+reg = DockerRegistry2.connect regurl
 
 # do we have tags?
 image = "hello-world-"+version
