@@ -3,18 +3,25 @@
 set -e
 
 cleanup() {
-    docker kill registry
-    docker rm registry
+    if [ -z "$TEST_REGISTRY" ]; then
+        docker kill registry
+        docker rm registry
+    fi
 }
 
 trap cleanup EXIT
 
-docker run --name registry -d -e REGISTRY_STORAGE_DELETE_ENABLED=true -v $PWD/test/registry:/var/lib/registry -p 5000:5000 registry:2.6
+# if the registry target was passed to us, we do not need to create anything or tear down anything
+if [ -z "$TEST_REGISTRY" ]; then
+    docker run --name registry -d -e REGISTRY_STORAGE_DELETE_ENABLED=true -v $PWD/test/registry:/var/lib/registry -p 5000:5000 registry:2.6
+fi
 
 # test a pull of each image - not a fancy start, but a good enough one
 bundle install
 
 echo "=== Starting Tests"
+
+export REGISTRY="http://localhost:5000/"
 
 echo "=== v1 --- OUTPUT"
 if VERSION=v1 ruby ./test/test.rb; then

@@ -18,4 +18,4 @@ clean:
 	rm -rf docker_registry2*.gem
 
 test:
-	./test.sh
+	TEST_REGISTRY=$(TEST_REGISTRY) ./test.sh
