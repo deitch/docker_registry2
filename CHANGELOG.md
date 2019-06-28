@@ -1,3 +1,9 @@
+## v1.7.0, 18 June 2019
+
+- Add `auto_paginate` option to `DockerRegistry2::Registry#tags`. When set to
+  true (as a keyword argument) the client will automatically paginate through
+  responses from the client to return a list of all tags
+
 ## v1.3.3, 18 December 2017
 
 - Use DockerRegistry2::NotFound in unauthenticated request calls
