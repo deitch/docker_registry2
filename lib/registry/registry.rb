@@ -49,33 +49,27 @@ class DockerRegistry2::Registry
     return repos
   end
 
-  def tags(repo,count=nil,last="",withHashes = false)
+  def tags(repo,count=nil,last="",withHashes = false, auto_paginate: false)
     #create query params
     params = []
-    if last != ""
-      params.push(["last",last])
-    end
-    if count != nil
-      params.push(["n",count])
-    end
+    params.push(["last",last]) if last && last != ""
+    params.push(["n",count]) unless count.nil?
 
     query_vars = ""
-    if params.length > 0
-      query_vars = "?#{URI.encode_www_form(params)}"
-    end
+    query_vars = "?#{URI.encode_www_form(params)}" if params.length > 0
+
     response = doget "/v2/#{repo}/tags/list#{query_vars}"
     # parse the response
     resp = JSON.parse response
     # parse out next page link if necessary
-    if response.headers[:link]
-      resp["last"] = last(response.headers[:link])
-    end
+    resp["last"] = last(response.headers[:link]) if response.headers[:link]
+
     # do we include the hashes?
-    if withHashes then
+    if withHashes
       useGet = false
       resp["hashes"] = {}
-      resp["tags"].each {|tag|
-        if useGet then
+      resp["tags"].each do |tag|
+        if useGet
           head = doget "/v2/#{repo}/manifests/#{tag}"
         else
           begin
@@ -87,8 +81,19 @@ class DockerRegistry2::Registry
           end
         end
         resp["hashes"][tag] = head.headers[:docker_content_digest]
-      }
+      end
     end
+
+    return resp unless auto_paginate
+
+    while (last_tag = resp.delete("last"))
+      additional_tags = tags(repo, count, last_tag, withHashes)
+      resp["last"] = additional_tags["last"]
+      resp["tags"] += additional_tags["tags"]
+      resp["tags"] = resp["tags"].uniq
+      resp["hashes"].merge!(additional_tags["hashes"]) if withHashes
+    end
+
     resp
   end
 
