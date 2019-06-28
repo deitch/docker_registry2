@@ -13,7 +13,8 @@ trap cleanup EXIT
 
 # if the registry target was passed to us, we do not need to create anything or tear down anything
 if [ -z "$TEST_REGISTRY" ]; then
-    docker run --name registry -d -e REGISTRY_STORAGE_DELETE_ENABLED=true -v $PWD/test/registry:/var/lib/registry -p 5000:5000 registry:2.6
+    docker run --name registry -d -e REGISTRY_STORAGE_DELETE_ENABLED=true -p 5000:5000 registry:2.6
+    docker cp $PWD/test/registry/. registry:/var/lib/registry
 fi
 
 # test a pull of each image - not a fancy start, but a good enough one

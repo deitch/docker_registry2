@@ -10,16 +10,7 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
           version: 18.06.0-ce
-      - run:
-          # this step is entirely because circleci does not support mounting volumes
-          name: Install Docker client
-          command: |
-            set -x
-            VER="18.06.0-ce"
-            curl -L -o /tmp/docker-$VER.tgz https://download.docker.com/linux/static/stable/x86_64/docker-$VER.tgz
-            tar -xz -C /tmp -f /tmp/docker-$VER.tgz
-            chmod 0755 /tmp/docker/*
-            mv /tmp/docker/* /usr/bin
+      # no need to install docker, as it is included in the above circleci/ruby image
       - persist_to_workspace:
           root: .
           paths:
