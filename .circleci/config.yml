@@ -25,6 +25,9 @@ jobs:
       - attach_workspace:
           at: .
       - run:
+          name: creds
+          command: printf -- "---\n:rubygems_api_key: $GEM_HOST_API_KEY\n" > ~/.gem/credentials
+      - run:
           name: push
           command: make push BUILD=local
 
