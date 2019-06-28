@@ -26,10 +26,10 @@ workflows:
   version: 2
   test-deploy:
     jobs:
-      - build
+      - ci
       - deploy:
           requires:
-          - build
+          - ci
           filters:
             branches:
               only: master
