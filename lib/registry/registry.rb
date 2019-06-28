@@ -49,15 +49,21 @@ class DockerRegistry2::Registry
     return repos
   end
 
-  def tags(repo,count=100,last="",withHashes = false)
+  def tags(repo,count=nil,last="",withHashes = false)
     #create query params
     params = []
     if last != ""
       params.push(["last",last])
     end
-    params.push(["n",count])
+    if count != nil
+      params.push(["n",count])
+    end
 
-    response = doget "/v2/#{repo}/tags/list?#{URI.encode_www_form(params)}"
+    query_vars = ""
+    if params.length > 0
+      query_vars = "?#{URI.encode_www_form(params)}"
+    end
+    response = doget "/v2/#{repo}/tags/list#{query_vars}"
     # parse the response
     resp = JSON.parse response
     # parse out next page link if necessary

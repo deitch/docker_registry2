@@ -117,17 +117,25 @@ The following exceptions are thrown:
 
 #### tags
 ````ruby
-results = reg.tags("mylibs",withHashes)
+results = reg.tags("mylibs",count=nil,last="",withHashes=false)
 ````
 
-Returns all known tags for the repository precisely named `"mylibs"`. If `withHashes` is present and set to `true`, also will return all of the hashes for each tag. See below. Note that retrieving the hashes is an expensive operations, as it requires a separate `HEAD` for each tag. This is why the default is `false`.
+Returns all known tags for the repository precisely named `"mylibs"`.
+
+Arguments:
+
+* `repository`: name of the repository to return, e.g. "mylibs" above. Relative to the registry to which you connected. REQUIRED.
+* `count`: how many records to return, if the registry supports pagination. Default is not to limit. The behaviour changes by registry implementation. See the section on pagination below. OPTIONAL.
+* `last`: the last record returned, if using pagination. See the section on pagination below. OPTIONAL.
+* `withHashes`: return the hash of the manifest for each tag. Note that retrieving the hashes is an expensive operations, as it requires a separate `HEAD` for each tag. This is why the default is `false`. OPTIONAL.
 
 Returns an object with the following key value pairs:
  array of objects, each of which has the following key/value pairs:
 
-* `name`: full name of repository, e.g. `redis` or `user/redis`
-* `tags`: array of strings, each of which is a tag for ths given repository
+* `name`: full name of repository, e.g. `redis` or `user/redis`.
+* `tags`: array of strings, each of which is a tag for ths given repository.
 * `hashes`: object, keys of which are the tag name, and values of which are the hash. Only provided if `withHashes` is true.
+* `last`: the last entry returned, to be used for pagination, only returned if the results have been paginated by the server.
 
 Other fields may be added later. Do *not* assume those are the only fields.
 
@@ -157,8 +165,60 @@ The following exceptions are thrown:
 * `RegistryAuthenticationException`: username and password are invalid
 * `RegistryAuthorizationException`: registry does not support tags using the given credentials, probably because the repository is private and the credentials provided do not have access
 
+##### pagination
 
+Some regstries support pagination for tags per [this standard](https://docs.docker.com/registry/spec/api/#listing-image-tags). If the registry supports pagination, you have several options:
 
+* Ignore it, and simply get back whatever the max number o tags the registry returns in whatever order. In many cases, this will work. `tags("repo")`
+* Set an arbitrarily high number. Note that this may not work, as the registry may implement a limit below your cap. `tags("repo", 5000)`
+* Work with pagination.
+
+To work with pagination, after each result set, you keep getting a new result set until there are no more. In this case, with each request, the `tags()` results will tell you what the key of the last one was returned. You pass that into the next call, so it knows where to start for the next set of results. You also can choose to limit the `count`, or just accept whatever default the registry has set.
+
+For example, let us assume that the registry has 26 tags, from `"a"` to `"z"`, and that it returns 3 tags with each call by default. Your first call:
+
+```ruby
+res = tags("repo")
+# or, to limit to 3 explicilty
+res = tags("repo")
+```
+
+Your results will be:
+
+```ruby
+{
+        "name" => "repo",
+        "tags" => ["a","b","c"],
+	"last" => "c"
+}
+```
+
+Note that it returned 3, either because that was the registry default or you explicitly limited to 3 results. It also told you that the last tag was `"c"`. You now can pass that on to the next request.
+
+```ruby
+res = tags("repo",nil,"c")
+# or, to limit to 3 explicitly
+res = tags("repo",3,"c")
+```
+
+The results will be:
+
+```ruby
+{
+        "name" => "repo",
+        "tags" => ["d","e","f"]
+        "last" => "f"
+}
+```
+
+Repeat until you have all of the results. The last one has no more pagination, and so the results will be without a `"last"` field:
+
+```ruby
+{
+        "name" => "repo",
+        "tags" => ["x","y","z"]
+}
+```
 
 
 #### manifest
