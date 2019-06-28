@@ -22,9 +22,11 @@ jobs:
     docker:
       - image: circleci/ruby:2.4.2-jessie
     steps:
+      - attach_workspace:
+          at: .
       - run:
           name: push
-          command: make push
+          command: make push BUILD=local
 
 workflows:
   version: 2
