@@ -1,0 +1,35 @@
+# circleci to build and test; deploy when on master
+---
+version: 2.1
+jobs:
+  ci:
+    docker:
+      image: circleci/ruby:2.4.2-jessie
+    steps:
+      - checkout
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+      - run:
+          name: CI
+          command: make build test
+  deploy:
+    docker:
+      image: circleci/ruby:2.4.2-jessie
+    steps:
+      - run:
+          name: push
+          command: make push
+
+workflows:
+  version: 2
+  test-deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+          - build
+          filters:
+            branches:
+              only: master
