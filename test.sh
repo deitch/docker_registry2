@@ -2,12 +2,12 @@
 
 set -e
 
-function cleanup {
+cleanup() {
     docker kill registry
     docker rm registry
 }
 
-trap cleanup ERR EXIT
+trap cleanup EXIT
 
 docker run --name registry -d -e REGISTRY_STORAGE_DELETE_ENABLED=true -v $PWD/test/registry:/var/lib/registry -p 5000:5000 registry:2.6
 
