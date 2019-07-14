@@ -367,7 +367,7 @@ class DockerRegistry2::Registry
     def headers(payload: nil, bearer_token: nil)
       headers={}
       headers['Authorization']="Bearer #{bearer_token}" unless bearer_token.nil?
-      headers['Accept']='application/vnd.docker.distribution.manifest.v2+json' if payload.nil?
+      headers['Accept']='application/vnd.docker.distribution.manifest.v2+json, application/json' if payload.nil?
       headers['Content-Type']='application/vnd.docker.distribution.manifest.v2+json' unless payload.nil?
 
       headers

@@ -1,3 +1,10 @@
+## v1.7.1, 13 July 2019
+
+- Add `application/json` to the list of acceptable response formats from
+  registries to fix Artifactory returning 406 Not Acceptable errors when
+  application/vnd.docker.distribution.manifest.v2+json is requested on the tags
+  endpoint
+
 ## v1.7.0, 18 June 2019
 
 - Add `auto_paginate` option to `DockerRegistry2::Registry#tags`. When set to
