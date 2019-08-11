@@ -222,12 +222,12 @@ Repeat until you have all of the results. The last one has no more pagination, a
 
 
 #### manifest
+
 ````ruby
 manifest = reg.manifest("namespace/repo","2.5.6")
 ````
 
 Returns the manifest for the given tag of the given repository. For the format and syntax of the manifest, see the [registry API](https://github.com/docker/distribution/blob/master/docs/spec/api.md) and the [manifest issue](https://github.com/docker/docker/issues/8093).
-
 
 If the given repository and/or tag is not found, return an empty object `{}`.
 
@@ -235,6 +235,13 @@ The following exceptions are thrown:
 
 * `RegistryAuthenticationException`: username and password are invalid
 * `RegistryAuthorizationException`: registry does not support tags using the given credentials, probably because the repository is private and the credentials provided do not have access
+
+The manifest, of course, is requested via http `GET`. While the returned manifest is an object parsed from the JSON of the manifest _body_, sometimes the http _headers_ are valuable as well. Thus the returned manifest object has a method `headers`, which returns the http headers from the request.
+
+```ruby
+manifest = reg.manifest("namespace/repo","2.5.6")
+manifest.headers
+```
 
 #### digest
 ````ruby

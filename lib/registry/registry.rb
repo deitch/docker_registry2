@@ -99,7 +99,12 @@ class DockerRegistry2::Registry
 
   def manifest(repo,tag)
     # first get the manifest
-    JSON.parse doget "/v2/#{repo}/manifests/#{tag}"
+    response = doget "/v2/#{repo}/manifests/#{tag}"
+    parsed = JSON.parse response.body
+    manifest = DockerRegistry2::Manifest[parsed]
+    manifest.body = response.body
+    manifest.headers = response.headers
+    manifest
   end
 
   def digest(repo, tag)
