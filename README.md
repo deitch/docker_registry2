@@ -243,6 +243,37 @@ manifest = reg.manifest("namespace/repo","2.5.6")
 manifest.headers
 ```
 
+#### blob
+
+````ruby
+blob = reg.blob("namespace/repo", "sha256:437f2acdb882407ad515c936c6f1cd9adbbb1340c8b271797723464c6ac71f9b")
+````
+
+Returns the blob for the given digest of the image of the given repository. For the format and syntax of the blob, see the [registry API](https://docs.docker.com/registry/spec/api/#blob) 
+
+The following exceptions are thrown:
+
+* `RegistryAuthenticationException`: username and password are invalid
+* `RegistryAuthorizationException`: registry does not support tags using the given 
+* `NotFound`: Either the repo or blob cannot be found
+
+The response is a json parsed hash containing the raw data returned from the registry, along with any headers set on the response
+
+```
+> blob['architecture']
+=> "amd64"
+> blob['os']
+=> "linux"
+> blob['docker_version']
+=> "18.09.5"
+> blob['created']
+=> "2019-11-27T15:20:08.074155975Z"
+> blob['config']['Labels']
+=> {"label1" => "value1", "label2" => "value2"}
+> blob.headers
+=> {:accept_ranges=>"bytes", :cache_control=>"max-age=31536000", :content_length=>"8981", :content_type=>"application/octet-stream", :docker_content_digest=>"sha256:559b6d4cc7272cf47a2f15606c706319957f56120dfe369ce465dda9952009fb", :docker_distribution_api_version=>"registry/2.0", :etag=>"\"sha256:559b6d4cc7272cf47a2f15606c706319957f56120dfe369ce465dda9952009fb\"", :x_content_type_options=>"nosniff", :date=>"Sat, 30 Nov 2019 17:09:46 GMT"}
+```
+
 #### digest
 ````ruby
 digest = reg.digest("namespace/repo", "2.5.6")
