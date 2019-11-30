@@ -107,6 +107,15 @@ class DockerRegistry2::Registry
     manifest
   end
 
+  def blob(repo, digest)
+    response = doget "/v2/#{repo}/blobs/#{digest}"
+    parsed = JSON.parse response.body
+    blob = DockerRegistry2::Blob[parsed]
+    blob.body = response.body
+    blob.headers = response.headers
+    blob 
+  end
+
   def digest(repo, tag)
     tag_path = "/v2/#{repo}/manifests/#{tag}"
     dohead(tag_path).headers[:docker_content_digest]

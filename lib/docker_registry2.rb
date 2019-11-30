@@ -2,6 +2,7 @@ require File.dirname(__FILE__) + '/registry/version'
 require File.dirname(__FILE__) + '/registry/registry'
 require File.dirname(__FILE__) + '/registry/exceptions'
 require File.dirname(__FILE__) + '/registry/manifest'
+require File.dirname(__FILE__) + '/registry/blob'
 
 
 module DockerRegistry2

@@ -41,6 +41,9 @@ end
 # can we read the manfiest?
 manifest = reg.manifest image, "latest"
 
+# can we get the blob?
+blob = reg.blob image, manifest['config']['digest']
+
 # can we get the digest?
 digest = reg.digest image, "latest"
 
