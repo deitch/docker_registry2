@@ -247,7 +247,7 @@ manifest.headers
 
 ````ruby
 > blob_digest = "sha256:87fbbe5ed7a499baa6603cd81502cfe0f26d0e9fe8b2feca8bc4ab04cd87c01e"
-> blob = reg.blob("namespace/repo", layer_blob_digest, '/path/to/blob')
+> blob = reg.blob("namespace/repo", blob_digest, '/path/to/blob')
 ````
 
 Returns the blob for the given digest in given repository. Blobs can vary in size, so a file path may be passed to stream the data. This is the recommended approach for downloading layer blobs due to their large size. For the format and syntax of the blob, see the [registry API](https://docs.docker.com/registry/spec/api/#blob) 
