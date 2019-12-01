@@ -243,6 +243,54 @@ manifest = reg.manifest("namespace/repo","2.5.6")
 manifest.headers
 ```
 
+#### blob
+
+````ruby
+> blob_digest = "sha256:87fbbe5ed7a499baa6603cd81502cfe0f26d0e9fe8b2feca8bc4ab04cd87c01e"
+> blob = reg.blob("namespace/repo", blob_digest, '/path/to/blob')
+````
+
+Returns the blob for the given digest in given repository. Blobs can vary in size, so a file path may be passed to stream the data. This is the recommended approach for downloading layer blobs due to their large size. For the format and syntax of the blob, see the [registry API](https://docs.docker.com/registry/spec/api/#blob) 
+
+The following exceptions are thrown:
+
+* `RegistryAuthenticationException`: username and password are invalid
+* `RegistryAuthorizationException`: registry does not support tags using the given 
+* `NotFound`: Either the repo or blob cannot be found
+
+
+Alternatively, if omitted the raw blob will be returned:
+````ruby
+> blob = reg.blob("namespace/repo", "sha256:437f2acdb882407ad515c936c6f1cd9adbbb1340c8b271797723464c6ac71f9b")
+> blob.headers
+=> {:date=>"Sun, 01 Dec 2019 15:48:57 GMT", :content_type=>"application/octet-stream", :content_length=>"7016", :connection=>"keep-alive", :set_cookie=>["__cfduid=d7b1e0e004daa8e1ffd2c8c80c70959e51575215337; expires=Tue, 31-Dec-19 15:48:57 GMT; path=/; domain=.production.cloudflare.docker.com; HttpOnly; Secure"], :cf_ray=>"53e6355468b3e593-MAN", :cf_cache_status=>"HIT", :cache_control=>"public, max-age=14400", :accept_ranges=>"bytes", :age=>"990327", :etag=>"\"574739ff4eca4fe0b24bcac899909659\"", :expires=>"Sun, 01 Dec 2019 19:48:57 GMT", :last_modified=>"Wed, 20 Nov 2019 01:18:29 GMT", :vary=>"Accept-Encoding", :expect_ct=>"max-age=604800, report-uri=\"https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct\"", :x_amz_id_2=>"nL/phq2BUYjsGIwrSHh8QMqsnGNbjDlDjFjunI7qOqpnfR/3WAbVnKcobw4d23+nAx3lAED6Vbw=", :x_amz_request_id=>"E6B231599CAE0074", :x_amz_version_id=>"hTvrmlz_ARV25b0tY5NVrEJNlv7._2J3", :server=>"cloudflare"}
+> blob.body
+=> "<raw body>"
+````
+
+The mediaType on the manifest paired with the digest determines the blob format, so in the case of an image blob (`application/vnd.docker.distribution.manifest.v2+json`) the body can be deserialized from JSON
+
+```ruby
+> manifest = reg.manifest "library/nginx", "1.17.6-alpine"
+=> {"schemaVersion"=>2, "mediaType"=>"application/vnd.docker.distribution.manifest.v2+json", "config"=>{"mediaType"=>"application/vnd.docker.container.image.v1+json", "size"=>7016, "digest"=>"sha256:a624d888d69ffdc185ed3b9c9c0645e8eaaac843ce59e89f1fbe45b0581e4ef6"}, "layers"=>[{"mediaType"=>"application/vnd.docker.image.rootfs.diff.tar.gzip", "size"=>2787134, "digest"=>"sha256:89d9c30c1d48bac627e5c6cb0d1ed1eec28e7dbdfbcc04712e4c79c0f83faf17"}, {"mediaType"=>"application/vnd.docker.image.rootfs.diff.tar.gzip", "size"=>5984561, "digest"=>"sha256:24f1c4f0b2f40c236ec9c306bd841778f30db9e6e7f067512732147ae7c11b07"}]}
+> image_digest = manifest['config']['digest']
+=> "sha256:a624d888d69ffdc185ed3b9c9c0645e8eaaac843ce59e89f1fbe45b0581e4ef6"
+> raw_blob = reg.blob "library/nginx", image_digest
+=> #<DockerRegistry2::Blob:0x007fd9bf8f2e10 ...>
+> image_blob = JSON.parse(raw_blob.body)
+=> {...}
+> image_blob['architecture']
+=> "amd64"
+> image_blob['os']
+=> "linux"
+> image_blob['docker_version']
+=> "18.06.1-ce"
+> image_blob['created']
+=> "2019-11-20T01:16:50.939316846Z"
+> image_blob['config']['Labels']
+=> {"maintainer"=>"NGINX Docker Maintainers <docker-maint@nginx.com>"}
+```
+
 #### digest
 ````ruby
 digest = reg.digest("namespace/repo", "2.5.6")

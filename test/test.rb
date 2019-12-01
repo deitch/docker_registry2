@@ -1,6 +1,14 @@
 #!ruby
 require 'tmpdir'
 require_relative '../lib/docker_registry2'
+
+def within_tmpdir
+	tmpdir = Dir.mktmpdir
+	yield(tmpdir)
+ensure
+	FileUtils.remove_entry_secure tmpdir
+end
+
 version = ENV["VERSION"]
 regurl = ENV["REGISTRY"]
 reg = DockerRegistry2.connect regurl
@@ -41,16 +49,27 @@ end
 # can we read the manfiest?
 manifest = reg.manifest image, "latest"
 
+# can we get the blob?
+case version
+when 'v1'
+	layer_blob = within_tmpdir do |tmpdir| 
+		tmpfile = File.join(tmpdir, 'first_layer.blob')
+		reg.blob image, manifest['fsLayers'].first['blobSum'], tmpfile
+	end
+when 'v2'
+	image_blob = reg.blob image, manifest['config']['digest']
+	layer_blob = within_tmpdir do |tmpdir| 
+		tmpfile = File.join(tmpdir, 'first_layer.blob')
+		reg.blob image, manifest['layers'].first['digest'], tmpfile
+	end 
+else
+end
+	
 # can we get the digest?
 digest = reg.digest image, "latest"
 
 # can we pull an image?
-tmpdir = Dir.mktmpdir
-begin
-	reg.pull image, "latest", tmpdir
-ensure
-	FileUtils.remove_entry_secure tmpdir
-end
+within_tmpdir {|tmpdir| reg.pull image, "latest", tmpdir }
 
 # success
 exit
