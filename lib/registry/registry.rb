@@ -107,13 +107,18 @@ class DockerRegistry2::Registry
     manifest
   end
 
-  def blob(repo, digest)
-    response = doget "/v2/#{repo}/blobs/#{digest}"
-    parsed = JSON.parse response.body
-    blob = DockerRegistry2::Blob[parsed]
-    blob.body = response.body
-    blob.headers = response.headers
-    blob 
+  def blob(repo, digest, outpath=nil)
+    blob_url = "/v2/#{repo}/blobs/#{digest}"
+    if outpath.nil? 
+      response = doget(blob_url)
+      DockerRegistry2::Blob.new(response.headers, response.body)
+    else
+      File.open(outpath, 'w') do |fd|
+        doreq('get', blob_url, fd)
+      end 
+
+      outpath
+    end
   end
 
   def digest(repo, tag)
@@ -157,11 +162,7 @@ class DockerRegistry2::Registry
       next if File.file? layer_file
       # download layer
       # puts "getting layer (v2) #{layer['digest']}"
-      File.open(layer_file, 'w') do |fd|
-        doreq('get',
-              "/v2/#{repo}/blobs/#{layer['digest']}",
-              fd)
-      end
+      blob(repo, layer['digest'], layer_file)
       layer_file
     end
   end
@@ -178,11 +179,7 @@ class DockerRegistry2::Registry
       next if File.file? layer_file
       # download layer
       # puts "getting layer (v1) #{layer['blobSum']}"
-      File.open(layer_file, 'w') do |fd|
-        doreq('get',
-              "/v2/#{repo}/blobs/#{layer['blobSum']}",
-              fd)
-      end
+      blob(repo, layer['blobSum'], layer_file)
       # return layer file
       layer_file
     end
