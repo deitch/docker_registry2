@@ -60,7 +60,7 @@ when 'v2'
 	image_blob = reg.blob image, manifest['config']['digest']
 	layer_blob = within_tmpdir do |tmpdir| 
 		tmpfile = File.join(tmpdir, 'first_layer.blob')
-		reg.blob image, manifest['config']['layers'].first['digest'], tmpfile
+		reg.blob image, manifest['layers'].first['digest'], tmpfile
 	end 
 else
 end
