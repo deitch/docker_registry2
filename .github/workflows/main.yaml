@@ -1,0 +1,58 @@
+name: Continuous Integration
+on: 
+ pull_request:
+   types: [opened, synchronize, reopened]
+ push:
+   branches:
+     - master
+
+jobs:
+  report:
+    name: Report
+    runs-on: ubuntu-latest
+    steps:
+    - name: ref
+      run: echo ${{ github.ref }} 
+    - name: event_name
+      run: echo ${{ github.event_name }} 
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v1
+    - uses: actions/setup-ruby@v1
+      with:
+        ruby-version: '2.x'
+    - name: report gemfile name
+      run: make gem
+    - name: test
+      run: make build test BUILD=local
+    - name: set gemfile name # because there is no way to include it later; this is silly
+      run: echo ::set-env name=GEMFILE::$(make gem)
+    - name: upload .gem file
+      uses: actions/upload-artifact@v1
+      env:
+        GEMFILE: ${{ env.GEMFILE }}
+      with:
+        name: gemfile
+        path: ${{ env.GEMFILE }}
+
+
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: creds
+      if: (github.event_name == 'push' && endsWith(github.ref,'/master')) || (github.event_name == 'create' && startsWith(github.ref,'refs/tags/'))
+      run: ./save-gem-creds.sh
+    - name: download gemfile
+      if: (github.event_name == 'push' && endsWith(github.ref,'/master')) || (github.event_name == 'create' && startsWith(github.ref,'refs/tags/'))
+      uses: actions/download-artifact@v1
+      with:
+        name: gemfile
+    - name: deploy
+      if: github.event_name == 'push' && endsWith(github.ref,'/master')
+      run: make push BUILD=local
+

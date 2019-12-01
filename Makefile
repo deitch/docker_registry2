@@ -13,6 +13,9 @@ endif
 
 push: deploy
 
+gem:
+	@echo $(GEM)
+
 build: $(GEM)
 
 $(GEM):
