@@ -52,10 +52,16 @@ manifest = reg.manifest image, "latest"
 # can we get the blob?
 case version
 when 'v1'
-	layer_blob = within_tmpdir {|tmpdir| reg.blob image, manifest['fsLayers'].first['blobSum'], tmpdir }
+	layer_blob = within_tmpdir do |tmpdir| 
+		tmpfile = File.join(tmpdir, 'first_layer.blob')
+		reg.blob image, manifest['fsLayers'].first['blobSum'], tmpfile
+	end
 when 'v2'
 	image_blob = reg.blob image, manifest['config']['digest']
-	layer_blob = within_tmpdir {|tmpdir| reg.blob image, manifest['config']['layers'].first['digest'], tmpdir } 
+	layer_blob = within_tmpdir do |tmpdir| 
+		tmpfile = File.join(tmpdir, 'first_layer.blob')
+		reg.blob image, manifest['config']['layers'].first['digest'], tmpfile
+	end 
 else
 end
 	
