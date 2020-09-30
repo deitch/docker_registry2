@@ -35,7 +35,7 @@ class DockerRegistry2::Registry
   end
 
   def ping
-    response = doget '/v2/'
+    doget '/v2/'
   end
 
   def search(query = '')
