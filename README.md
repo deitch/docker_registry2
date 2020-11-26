@@ -55,6 +55,13 @@ opts = { open_timeout: 2, read_timeout: 5 }
 reg = DockerRegistry2.connect("https://my.registy.corp.com", opts)
 ```
 
+Your may pass extra options for RestClient::Request.execute through `http_options` :
+
+```ruby
+opts = { http_options: { proxy: 'http://proxy.example.com:8080/' } }
+reg = DockerRegistry2.connect("https://my.registy.corp.com", opts)
+```
+
 You can connect anonymously or with credentials:
 
 #### Anonymous

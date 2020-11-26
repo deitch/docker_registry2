@@ -7,15 +7,19 @@ class DockerRegistry2::Registry
   # @param [Hash] options Client options
   # @option options [#to_s] :user User name for basic authentication
   # @option options [#to_s] :password Password for basic authentication
-  # @option options [#to_s] :open_timeout Time to wait for a connection with a registry
-  # @option options [#to_s] :read_timeout Time to wait for data from a registry
+  # @option options [#to_s] :open_timeout Time to wait for a connection with a registry.
+  #                                       It is ignored if http_options[:open_timeout] is also specified.
+  # @option options [#to_s] :read_timeout Time to wait for data from a registry.
+  #                                       It is ignored if http_options[:read_timeout] is also specified.
+  # @option options [Hash] :http_options Extra options for RestClient::Request.execute.
   def initialize(uri, options = {})
     @uri = URI.parse(uri)
     @base_uri = "#{@uri.scheme}://#{@uri.host}:#{@uri.port}"
     @user = options[:user]
     @password = options[:password]
-    @open_timeout = options[:open_timeout] || 2
-    @read_timeout = options[:read_timeout] || 5
+    @http_options = options[:http_options] || {}
+    @http_options[:open_timeout] ||= options[:open_timeout] || 2
+    @http_options[:read_timeout] ||= options[:read_timeout] || 5
   end
 
   def doget(url)
@@ -244,15 +248,13 @@ class DockerRegistry2::Registry
             stream.write chunk
           end
         }
-        response = RestClient::Request.execute(
+        response = RestClient::Request.execute(@http_options.merge(
           method: type,
           url: @base_uri+url,
           headers: headers(payload: payload),
           block_response: block,
-          open_timeout: @open_timeout,
-          read_timeout: @read_timeout,
           payload: payload
-        )
+        ))
       rescue SocketError
         raise DockerRegistry2::RegistryUnknownException
       rescue RestClient::NotFound => error
@@ -279,17 +281,15 @@ class DockerRegistry2::Registry
             stream.write chunk
           end
         }
-        response = RestClient::Request.execute(
+        response = RestClient::Request.execute(@http_options.merge(
           method: type,
           url: @base_uri+url,
           user: @user,
           password: @password,
           headers: headers(payload: payload),
           block_response: block,
-          open_timeout: @open_timeout,
-          read_timeout: @read_timeout,
           payload: payload
-        )
+        ))
       rescue SocketError
         raise DockerRegistry2::RegistryUnknownException
       rescue RestClient::Unauthorized
@@ -310,15 +310,13 @@ class DockerRegistry2::Registry
             stream.write chunk
           end
         }
-        response = RestClient::Request.execute(
+        response = RestClient::Request.execute(@http_options.merge(
           method: type,
           url: @base_uri+url,
           headers: headers(payload: payload, bearer_token: token),
           block_response: block,
-          open_timeout: @open_timeout,
-          read_timeout: @read_timeout,
           payload: payload
-        )
+        ))
       rescue SocketError
         raise DockerRegistry2::RegistryUnknownException
       rescue RestClient::Unauthorized
@@ -342,14 +340,12 @@ class DockerRegistry2::Registry
       # authenticate against the realm
       uri = URI.parse(target[:realm])
       begin
-        response = RestClient::Request.execute(
+        response = RestClient::Request.execute(@http_options.merge(
           method: :get,
           url: uri.to_s, headers: {params: target[:params]},
           user: @user,
           password: @password,
-          open_timeout: @open_timeout,
-          read_timeout: @read_timeout
-        )
+        ))
       rescue RestClient::Unauthorized, RestClient::Forbidden
         # bad authentication
         raise DockerRegistry2::RegistryAuthenticationException
