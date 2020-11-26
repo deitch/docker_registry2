@@ -29,7 +29,7 @@ jobs:
     - name: test
       run: make build test BUILD=local
     - name: set gemfile name # because there is no way to include it later; this is silly
-      run: echo ::set-env name=GEMFILE::$(make gem)
+      run: echo "GEMFILE=$(make gem)" >> $GITHUB_ENV
     - name: upload .gem file
       uses: actions/upload-artifact@v1
       env:
