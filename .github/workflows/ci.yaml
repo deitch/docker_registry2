@@ -1,0 +1,31 @@
+name: Continuous Integration
+on: 
+ pull_request:
+   types: [opened, synchronize, reopened]
+ push:
+   branches:
+     - master
+
+jobs:
+  report:
+    name: Report
+    runs-on: ubuntu-latest
+    steps:
+    - name: ref
+      run: echo ${{ github.ref }} 
+    - name: event_name
+      run: echo ${{ github.event_name }} 
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v1
+    - uses: actions/setup-ruby@v1
+      with:
+        ruby-version: '2.x'
+    - name: report gemfile name
+      run: make gem
+    - name: test
+      run: make build test BUILD=local
+
