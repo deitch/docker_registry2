@@ -38,10 +38,6 @@ class DockerRegistry2::Registry
     return doreq "head", url
   end
 
-  def ping
-    doget '/v2/'
-  end
-
   def search(query = '')
     response = doget "/v2/_catalog"
     # parse the response
