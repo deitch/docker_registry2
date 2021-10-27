@@ -41,7 +41,13 @@ class DockerRegistry2::Registry
   def search(query = '')
     response = doget "/v2/_catalog"
     # parse the response
-    repos = JSON.parse(response)["repositories"]
+    repos = JSON.parse(response.body)["repositories"]
+
+    while response.headers.has_key? :link do
+      response = doget response.headers[:link].split(';').first().tr('<>', '')
+      repos = repos.zip(JSON.parse(response.body)["repositories"]).flatten().compact().sort()
+    end
+
     if query.strip.length > 0
       re = Regexp.new query
       repos = repos.find_all {|e| re =~ e }
