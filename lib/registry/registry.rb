@@ -217,7 +217,7 @@ class DockerRegistry2::Registry
     parts.each do |part, index|
       section = part.split(';')
       url = section[0][/<(.*)>/,1]
-      name = section[1][/rel="(.*)"/,1].to_sym
+      name = section[1][/rel="?([^"]*)"?/,1].to_sym
       links[name] = url
     end
 
