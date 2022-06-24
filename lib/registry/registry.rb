@@ -257,7 +257,7 @@ class DockerRegistry2::Registry
         raise DockerRegistry2::NotFound, error
       rescue RestClient::Unauthorized => e
         header = e.response.headers[:www_authenticate]
-        method = header.downcase.split(' ')[0]
+        method = header.to_s.downcase.split(' ')[0]
         case method
         when 'basic'
           response = do_basic_req(type, url, stream, payload)
