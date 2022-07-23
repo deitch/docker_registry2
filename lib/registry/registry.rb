@@ -109,13 +109,13 @@ class DockerRegistry2::Registry
 
   def blob(repo, digest, outpath=nil)
     blob_url = "/v2/#{repo}/blobs/#{digest}"
-    if outpath.nil? 
+    if outpath.nil?
       response = doget(blob_url)
       DockerRegistry2::Blob.new(response.headers, response.body)
     else
       File.open(outpath, 'w') do |fd|
         doreq('get', blob_url, fd)
-      end 
+      end
 
       outpath
     end
@@ -223,7 +223,9 @@ class DockerRegistry2::Registry
 
     if links[:next]
       query=URI(links[:next]).query
-      last=URI::decode_www_form(query).to_h["last"]
+      link_key = @uri.host.eql?('quay.io') ? 'next_page' : 'last'
+      last=URI::decode_www_form(query).to_h[link_key]
+
     end
     last
   end
