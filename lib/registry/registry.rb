@@ -38,15 +38,34 @@ class DockerRegistry2::Registry
     return doreq "head", url
   end
 
-  def search(query = '')
-    response = doget "/v2/_catalog"
-    # parse the response
-    repos = JSON.parse(response)["repositories"]
-    if query.strip.length > 0
-      re = Regexp.new query
-      repos = repos.find_all {|e| re =~ e }
+  # When a result set is too large, the Docker registry returns only the first items and adds a Link header in the
+  # response with the URL of the next page. See <https://docs.docker.com/registry/spec/api/#pagination>. This method
+  # iterates over the pages and calls the given block with each response.
+  def paginate_doget(url)
+    while url
+      response = doget(url)
+      yield response
+
+      if (link = response.headers[:link])
+        url = parse_link_header(link)[:next]
+      else
+        break
+      end
     end
-    return repos
+  end
+
+  def search(query = '')
+    all_repos = []
+    paginate_doget "/v2/_catalog" do |response|
+      # parse the response
+      repos = JSON.parse(response)["repositories"]
+      if query.strip.length > 0
+        re = Regexp.new query
+        repos = repos.find_all {|e| re =~ e }
+      end
+      all_repos += repos
+    end
+    all_repos
   end
 
   def tags(repo,count=nil,last="",withHashes = false, auto_paginate: false)
@@ -208,7 +227,9 @@ class DockerRegistry2::Registry
     Integer(response.headers[:content_length],10)
   end
 
-  def last(header)
+  # Parse the value of the Link HTTP header and return a Hash whose keys are the rel values turned into symbols, and
+  # the values are URLs. For example, `{ next: '/v2/_catalog?n=100&last=x' }`.
+  def parse_link_header(header)
     last=''
     parts = header.split(',')
     links = Hash.new
@@ -221,6 +242,11 @@ class DockerRegistry2::Registry
       links[name] = url
     end
 
+    links
+  end
+
+  def last(header)
+    links = parse_link_header(header)
     if links[:next]
       query=URI(links[:next]).query
       link_key = @uri.host.eql?('quay.io') ? 'next_page' : 'last'
