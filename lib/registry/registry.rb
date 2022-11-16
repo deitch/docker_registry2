@@ -288,8 +288,8 @@ module DockerRegistry2
                                                ))
       rescue SocketError
         raise DockerRegistry2::RegistryUnknownException
-      rescue RestClient::NotFound => e
-        raise DockerRegistry2::NotFound, e
+      rescue RestClient::NotFound
+        raise DockerRegistry2::NotFound, "Image not found at #{@uri.host}"
       rescue RestClient::Unauthorized => e
         header = e.response.headers[:www_authenticate]
         method = header.to_s.downcase.split(' ')[0]
