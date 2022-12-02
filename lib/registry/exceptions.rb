@@ -1,32 +1,33 @@
+# frozen_string_literal: true
+
 module DockerRegistry2
   class Exception < RuntimeError
-    
-  end
-  
-  class RegistryAuthenticationException < Exception
   end
 
-  class RegistryAuthorizationException < Exception
+  class RegistryAuthenticationException < StandardError
   end
 
-  class RegistryUnknownException < Exception
+  class RegistryAuthorizationException < StandardError
   end
 
-  class RegistrySSLException < Exception
+  class RegistryUnknownException < StandardError
   end
 
-  class RegistryVersionException < Exception
-  end
-  
-  class ReauthenticatedException < Exception
-  end
-  
-  class UnknownRegistryException < Exception
+  class RegistrySSLException < StandardError
   end
 
-  class NotFound < Exception
+  class RegistryVersionException < StandardError
   end
 
-  class InvalidMethod < Exception
+  class ReauthenticatedException < StandardError
+  end
+
+  class UnknownRegistryException < StandardError
+  end
+
+  class NotFound < StandardError
+  end
+
+  class InvalidMethod < StandardError
   end
 end
