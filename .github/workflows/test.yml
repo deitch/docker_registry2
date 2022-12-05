@@ -1,0 +1,38 @@
+name: Test
+
+on: 
+ pull_request:
+   types: [opened, synchronize, reopened]
+ push:
+   branches:
+     - master
+
+
+jobs:
+  docker:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby-version: ['2.7', '3.1']
+        registry-version: ['v1', 'v2']
+    steps:
+    - name: Setup ruby
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+    - name: Checkout
+      uses: actions/checkout@v1
+
+    - name: Start containers
+      run: docker-compose -f "docker-compose.yml" up -d --build
+
+    - name: bundle install
+      run: bundle install
+    
+    - name: Run tests
+      run: REGISTRY=http://localhost:5000 VERSION=${{ matrix.registry-version }} ruby ./test/test.rb
+
+    - name: Stop containers
+      if: always()
+      run: docker-compose -f "docker-compose.yml" down
