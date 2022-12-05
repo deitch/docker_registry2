@@ -1,6 +1,7 @@
 #!ruby
+# frozen_string_literal: true
 
-require "rubygems"
+require 'rubygems'
 
-spec = Gem::Specification::load("docker_registry2.gemspec")
-puts spec.name.to_s+'-'+spec.version.to_s+'.gem'
+spec = Gem::Specification.load('docker_registry2.gemspec')
+puts "#{spec.name}-#{spec.version}.gem"
