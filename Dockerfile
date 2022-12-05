@@ -1,12 +1,12 @@
 # build container
-ARG IMG=ruby:2.4.6-alpine3.9
+ARG IMG=ruby:3.1.1-alpine
 FROM ${IMG} AS build
 
 RUN apk --update add make
 
 WORKDIR /src
 
-COPY Gemfile* .
+COPY Gemfile* ./
 
 COPY . .
 
