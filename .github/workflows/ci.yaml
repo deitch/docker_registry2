@@ -29,6 +29,3 @@ jobs:
         ruby-version: ${{ matrix.ruby-version }}
     - name: report gemfile name ruby ${{ matrix.ruby-version }}
       run: make gem
-    - name: test
-      run: make build test BUILD=local
-
