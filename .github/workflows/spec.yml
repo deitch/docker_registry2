@@ -1,0 +1,31 @@
+name: Specs
+
+on: 
+ pull_request:
+   types: [opened, synchronize, reopened]
+ push:
+   branches:
+     - master
+
+
+jobs:
+  docker:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby-version: ['2.7', '3.1']
+        registry-version: ['v1', 'v2']
+    steps:
+    - name: Setup ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+    - name: Checkout
+      uses: actions/checkout@v1
+
+    - name: bundle install
+      run: bundle install
+    
+    - name: Run specs
+      run: rspec
