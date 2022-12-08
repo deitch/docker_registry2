@@ -48,12 +48,13 @@ run_tests() {
 	if [ "$BUILD" = "local" ]; then
 		run_tests_local "${TEST_REGISTRY:-http://localhost:5000}"
 	else
-    		docker build --network=$NETNAME --build-arg registry="http://registry:5000" --build-arg cachebuster=$(date +%s) --target=test -t gem-test .
+    		docker build --network=$NETNAME --build-arg IMG=$IMG --build-arg registry="http://registry:5000" --build-arg cachebuster=$(date +%s) --target=test -t gem-test .
 	fi
 }
 
 TASK=$1
 NETNAME=registry-test
+IMG=ruby:3.1.1-alpine
 
 case $TASK in
 testonly)
