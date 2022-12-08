@@ -1,0 +1,39 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: http://localhost:5000/v2/hello-world-v1/tags/list
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - application/vnd.docker.distribution.manifest.v2+json, application/json
+      User-Agent:
+      - rest-client/2.1.0 (linux x86_64) ruby/3.1.1p18
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Host:
+      - localhost:5000
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+      Docker-Distribution-Api-Version:
+      - registry/2.0
+      X-Content-Type-Options:
+      - nosniff
+      Date:
+      - Thu, 08 Dec 2022 12:24:41 GMT
+      Content-Length:
+      - '44'
+    body:
+      encoding: UTF-8
+      string: '{"name":"hello-world-v1","tags":["latest"]}
+
+        '
+  recorded_at: Thu, 08 Dec 2022 12:24:41 GMT
+recorded_with: VCR 6.1.0

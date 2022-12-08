@@ -1,3 +1,4 @@
 docker_registry2*.gem
+.rspec_status
 .bundle/*
 Gemfile.lock
