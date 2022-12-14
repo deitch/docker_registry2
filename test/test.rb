@@ -45,6 +45,15 @@ end
 # can we read the manfiest?
 manifest = reg.manifest image, 'latest'
 
+# multiarch test
+multiarch_manifest = reg.manifest 'my-ubuntu', '17.04'
+
+abort if multiarch_manifest.nil?
+
+archs = multiarch_manifest.fetch('manifests').map { |manifest| manifest.fetch('platform').fetch('architecture') }
+
+abort if archs != %w[amd64 amd64]
+
 # can we get the blob?
 case version
 when 'v1'
