@@ -46,6 +46,10 @@ RSpec.describe DockerRegistry2 do
       VCR.use_cassette('manifest/hello-world-v99_latest') { connected_object.manifest('hello-world-v99', 'latest') }
     end
 
+    let(:my_ubuntu_multiarch_manifest) do
+      VCR.use_cassette('manifest/multiarch_ubuntu') { connected_object.manifest('my-ubuntu', '17.04') }
+    end
+
     context 'manifest exists' do
       it { expect { manifest_hello_world_v1_latest }.not_to raise_error }
     end
@@ -53,8 +57,22 @@ RSpec.describe DockerRegistry2 do
     context 'manifest for wrong tag' do
       it { expect { manifest_hello_world_v1_non_existent }.to raise_error(DockerRegistry2::NotFound) }
     end
+
     context 'manifest for wrong image' do
       it { expect { manifest_hello_world_v99_latest }.to raise_error(DockerRegistry2::NotFound) }
+    end
+
+    context 'multiarch manifest exists' do
+      it { expect { my_ubuntu_multiarch_manifest }.not_to raise_error }
+    end
+
+    context 'multiarch manifest returns the expected archs' do
+      let(:archs) do
+        my_ubuntu_multiarch_manifest.fetch('manifests').map { |manifest| manifest.fetch('platform').fetch('architecture') }
+      end
+
+      it { expect { my_ubuntu_multiarch_manifest }.not_to raise_error }
+      it { expect(archs).to match_array(%w[amd64 amd64]) }
     end
   end
 end
