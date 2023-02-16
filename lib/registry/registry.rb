@@ -5,7 +5,7 @@ require 'rest-client'
 require 'json'
 
 module DockerRegistry2
-  class Registry
+  class Registry # rubocop:disable Metrics/ClassLength
     # @param [#to_s] base_uri Docker registry base URI
     # @param [Hash] options Client options
     # @option options [#to_s] :user User name for basic authentication
@@ -411,7 +411,14 @@ module DockerRegistry2
     def headers(payload: nil, bearer_token: nil)
       headers = {}
       headers['Authorization'] = "Bearer #{bearer_token}" unless bearer_token.nil?
-      headers['Accept'] = 'application/vnd.docker.distribution.manifest.v2+json,application/vnd.docker.distribution.manifest.list.v2+json,application/json' if payload.nil?
+      if payload.nil?
+        headers['Accept'] =
+          %w[application/vnd.docker.distribution.manifest.v2+json
+             application/vnd.docker.distribution.manifest.list.v2+json
+             application/vnd.oci.image.manifest.v1+json
+             application/vnd.oci.image.index.v1+json
+             application/json].join(',')
+      end
       headers['Content-Type'] = 'application/vnd.docker.distribution.manifest.v2+json' unless payload.nil?
 
       headers
