@@ -31,6 +31,14 @@ RSpec.describe DockerRegistry2 do
     end
   end
 
+  describe 'search' do
+    let(:search_hello_world) do
+      VCR.use_cassette('search/hello_world') { connected_object.search('hello-world') }
+    end
+    it { expect { search_hello_world }.not_to raise_error }
+    it { expect(search_hello_world.size).to eq 2 }
+  end
+
   describe 'manifest' do
     let(:manifest_hello_world_v1_latest) do
       VCR.use_cassette('manifest/hello-world-v1_latest') { connected_object.manifest('hello-world-v1', 'latest') }
