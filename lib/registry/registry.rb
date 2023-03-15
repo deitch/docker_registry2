@@ -45,26 +45,22 @@ module DockerRegistry2
     # response with the URL of the next page. See <https://docs.docker.com/registry/spec/api/#pagination>. This method
     # iterates over the pages and calls the given block with each response.
     def paginate_doget(url)
-      while url
+      loop do
         response = doget(url)
         yield response
 
-        break unless (link = response.headers[:link])
+        link_header = response.headers[:link]
+        break unless link_header
 
-        url = parse_link_header(link)[:next]
-
+        url = parse_link_header(link_header)[:next]
       end
     end
 
     def search(query = '')
       all_repos = []
-      paginate_doget '/v2/_catalog' do |response|
-        # parse the response
+      paginate_doget('/v2/_catalog') do |response|
         repos = JSON.parse(response)['repositories']
-        if query.strip.length.positive?
-          re = Regexp.new query
-          repos = repos.find_all { |e| re =~ e }
-        end
+        repos.select! { |repo| repo.match?(/#{query}/) } unless query.empty?
         all_repos += repos
       end
       all_repos
