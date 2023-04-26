@@ -82,5 +82,23 @@ RSpec.describe DockerRegistry2 do
       it { expect { my_ubuntu_multiarch_manifest }.not_to raise_error }
       it { expect(archs).to match_array(%w[amd64 amd64]) }
     end
+
+    context 'Docker registry without path' do
+      let(:uri) { 'https://example.com' }
+      let(:registry) { DockerRegistry2::Registry.new(uri) }
+
+      it 'The @path should be empty' do
+        expect(registry.instance_variable_get(:@base_uri)).to eq('https://example.com:443')
+      end
+    end
+
+    context 'Docker registry with a @path' do
+      let(:uri) { 'https://registry.myCompany.com/dockerproxy' }
+      let(:registry) { DockerRegistry2::Registry.new(uri) }
+
+      it 'The @path is included' do
+        expect(registry.instance_variable_get(:@base_uri)).to eq('https://registry.myCompany.com:443/dockerproxy')
+      end
+    end
   end
 end

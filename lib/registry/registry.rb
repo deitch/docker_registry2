@@ -17,7 +17,7 @@ module DockerRegistry2
     # @option options [Hash] :http_options Extra options for RestClient::Request.execute.
     def initialize(uri, options = {})
       @uri = URI.parse(uri)
-      @base_uri = "#{@uri.scheme}://#{@uri.host}:#{@uri.port}"
+      @base_uri = "#{@uri.scheme}://#{@uri.host}:#{@uri.port}#{@uri.path}"
       @user = options[:user]
       @password = options[:password]
       @http_options = options[:http_options] || {}
