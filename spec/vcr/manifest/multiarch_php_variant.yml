@@ -1,0 +1,74 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: http://localhost:5000/v2/php/manifests/latest
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - application/vnd.docker.distribution.manifest.v2+json, application/vnd.docker.distribution.manifest.list.v2+json,
+        application/json
+      User-Agent:
+      - rest-client/2.1.0 (linux x86_64) ruby/3.1.1p18
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Host:
+      - localhost:5000
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Length:
+      - '743'
+      Content-Type:
+      - application/vnd.docker.distribution.manifest.list.v2+json
+      Docker-Distribution-Api-Version:
+      - registry/2.0
+      X-Content-Type-Options:
+      - nosniff
+      Date:
+      - Thu, 15 Dec 2022 09:56:35 GMT
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+           "schemaVersion": 2,
+           "mediaType": "application/vnd.docker.distribution.manifest.list.v2+json",
+           "manifests": [
+                  {
+             "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+             "size": 2201,
+             "digest": "sha256:1eb3215f71b6dcf1a1f9bec5fde07ae166ecf43de16e48ebdff3641ee54cac72",
+             "platform": {
+                "architecture": "arm",
+                "os": "linux",
+                "variant": "v5"
+             }
+            },
+          {
+            "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+            "size": 2201,
+            "digest": "sha256:31f575dc7f546a46f89018cf417fe42558c3ed6b138150659fb0bc7908498dad",
+            "platform": {
+              "architecture": "arm",
+              "os": "linux",
+              "variant": "v7"
+            }
+          },
+            {
+             "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+             "size": 2201,
+             "digest": "sha256:c07ea89121ccc592418963110aba58febaf70dffad8c854ee25d8ca2a0ad746c",
+             "platform": {
+                "architecture": "386",
+                "os": "linux"
+             }
+        }
+           ]
+        }
+
+  recorded_at: Thu, 15 Dec 2022 09:56:35 GMT
+recorded_with: VCR 6.1.0
