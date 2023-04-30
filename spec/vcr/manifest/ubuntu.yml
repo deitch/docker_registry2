@@ -1,0 +1,50 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: http://localhost:5000/v2/my-image/manifests/2.0
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - application/vnd.docker.distribution.manifest.v2+json, application/vnd.docker.distribution.manifest.list.v2+json,
+        application/json
+      User-Agent:
+      - rest-client/2.1.0 (linux x86_64) ruby/3.1.1p18
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Host:
+      - localhost:5000
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/vnd.docker.container.image.v1+json
+      X-Content-Type-Options:
+      - nosniff
+      Date:
+      - Thu, 15 Dec 2022 09:56:35 GMT
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+        "schemaVersion": 2,
+        "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+        "config": {
+                "mediaType": "application/vnd.docker.container.image.v1+json",
+                "size": 1520,
+                "digest": "sha256:1815c82652c03bfd8644afda26fb184f2ed891d921b20a0703b46768f9755c57"
+        },
+        "layers": [
+                {
+                        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+                        "size": 972,
+                        "digest": "sha256:b04784fba78d739b526e27edc02a5a8cd07b1052e9283f5fc155828f4b614c28"
+                }
+        ]
+        }
+  recorded_at: Thu, 15 Dec 2022 09:56:35 GMT
+recorded_with: VCR 6.1.0

@@ -83,21 +83,9 @@ module DockerRegistry2
 
       # do we include the hashes?
       if withHashes
-        useGet = false
         resp['hashes'] = {}
         resp['tags'].each do |tag|
-          if useGet
-            head = doget "/v2/#{repo}/manifests/#{tag}"
-          else
-            begin
-              head = dohead "/v2/#{repo}/manifests/#{tag}"
-            rescue DockerRegistry2::InvalidMethod
-              # in case we are in a registry pre-2.3.0, which did not support manifest HEAD
-              useGet = true
-              head = doget "/v2/#{repo}/manifests/#{tag}"
-            end
-          end
-          resp['hashes'][tag] = head.headers[:docker_content_digest]
+          resp['hashes'][tag] = digest(repo, tag)
         end
       end
 
@@ -138,12 +126,29 @@ module DockerRegistry2
       end
     end
 
-    def digest(repo, tag)
-      tag_path = "/v2/#{repo}/manifests/#{tag}"
-      dohead(tag_path).headers[:docker_content_digest]
-    rescue DockerRegistry2::InvalidMethod
-      # Pre-2.3.0 registries didn't support manifest HEAD requests
-      doget(tag_path).headers[:docker_content_digest]
+    def digest(image, tag, architecture = nil, os = nil, variant = nil)
+      manifest = manifest(image, tag)
+      parsed_manifest = JSON.parse(manifest.body)
+
+      # Multi-arch images
+      if parsed_manifest.key?('manifests')
+        manifests = parsed_manifest['manifests']
+
+        return manifests if architecture.nil? || os.nil?
+
+        manifests.each do |entry|
+          if !variant.nil?
+            return entry['digest'] if entry['platform']['architecture'] == architecture && entry['platform']['os'] == os && entry['platform']['variant'] == variant
+          elsif entry['platform']['architecture'] == architecture && entry['platform']['os'] == os
+            return entry['digest']
+          end
+        end
+
+        raise DockerRegistry2::NotFound, "No matches found for the image=#{image} tag=#{tag} os=#{os} architecture=#{architecture}"
+
+      end
+
+      parsed_manifest.dig('config', 'digest')
     end
 
     def rmtag(image, tag)
