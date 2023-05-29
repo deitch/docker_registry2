@@ -4,30 +4,30 @@ module DockerRegistry2
   class Exception < RuntimeError
   end
 
-  class RegistryAuthenticationException < StandardError
+  class RegistryAuthenticationException < DockerRegistry2::Exception
   end
 
-  class RegistryAuthorizationException < StandardError
+  class RegistryAuthorizationException < DockerRegistry2::Exception
   end
 
-  class RegistryUnknownException < StandardError
+  class RegistryUnknownException < DockerRegistry2::Exception
   end
 
-  class RegistrySSLException < StandardError
+  class RegistrySSLException < DockerRegistry2::Exception
   end
 
-  class RegistryVersionException < StandardError
+  class RegistryVersionException < DockerRegistry2::Exception
   end
 
-  class ReauthenticatedException < StandardError
+  class ReauthenticatedException < DockerRegistry2::Exception
   end
 
-  class UnknownRegistryException < StandardError
+  class UnknownRegistryException < DockerRegistry2::Exception
   end
 
-  class NotFound < StandardError
+  class NotFound < DockerRegistry2::Exception
   end
 
-  class InvalidMethod < StandardError
+  class InvalidMethod < DockerRegistry2::Exception
   end
 end
