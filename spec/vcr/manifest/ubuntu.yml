@@ -23,6 +23,12 @@ http_interactions:
     headers:
       Content-Type:
       - application/vnd.docker.container.image.v1+json
+      Docker-Content-Digest:
+      - sha256:6d28b970d82cb05ce1aca12baddcd72b7034c7e771fdd97d0862672deb863fca
+      Docker-Distribution-Api-Version:
+      - registry/2.0
+      Etag:
+      - '"sha256:6d28b970d82cb05ce1aca12baddcd72b7034c7e771fdd97d0862672deb863fca"'
       X-Content-Type-Options:
       - nosniff
       Date:
