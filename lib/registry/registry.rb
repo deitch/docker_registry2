@@ -148,7 +148,7 @@ module DockerRegistry2
 
       end
 
-      parsed_manifest.dig('config', 'digest')
+      manifest.headers[:docker_content_digest]
     end
 
     def rmtag(image, tag)

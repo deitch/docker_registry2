@@ -107,7 +107,7 @@ RSpec.describe DockerRegistry2 do
 
       it 'Digest is extracted from a manifest with single arch' do
         VCR.use_cassette('manifest/ubuntu') do
-          expect(connected_object.digest('my-image', '2.0')).to eq('sha256:1815c82652c03bfd8644afda26fb184f2ed891d921b20a0703b46768f9755c57')
+          expect(connected_object.digest('my-image', '2.0')).to eq('sha256:6d28b970d82cb05ce1aca12baddcd72b7034c7e771fdd97d0862672deb863fca')
         end
       end
       it 'Digest is extracted from a multiarch image' do
