@@ -252,7 +252,7 @@ module DockerRegistry2
       links = parse_link_header(header)
       if links[:next]
         query = URI(links[:next]).query
-        link_key = @uri.host.eql?('quay.io') ? 'next_page' : 'last'
+        link_key = @uri.host.eql?('quay.io') || @uri.host.eql?('registry.access.redhat.com') ? 'next_page' : 'last'
         last = URI.decode_www_form(query).to_h[link_key]
 
       end
