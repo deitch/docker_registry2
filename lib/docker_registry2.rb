@@ -22,4 +22,8 @@ module DockerRegistry2
   def self.manifest(repository, tag)
     @reg.manifest(repository, tag)
   end
+
+  def self.manifest_digest(repository, tag)
+    @reg.manifest_digest(repository, tag)
+  end
 end
