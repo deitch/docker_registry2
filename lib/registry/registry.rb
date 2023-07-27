@@ -126,6 +126,14 @@ module DockerRegistry2
       end
     end
 
+    def manifest_digest(repo, tag)
+      tag_path = "/v2/#{repo}/manifests/#{tag}"
+      dohead(tag_path).headers[:docker_content_digest]
+    rescue DockerRegistry2::InvalidMethod
+      # Pre-2.3.0 registries didn't support manifest HEAD requests
+      doget(tag_path).headers[:docker_content_digest]
+    end
+
     def digest(image, tag, architecture = nil, os = nil, variant = nil)
       manifest = manifest(image, tag)
       parsed_manifest = JSON.parse(manifest.body)
