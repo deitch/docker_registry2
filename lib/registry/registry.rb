@@ -56,13 +56,17 @@ module DockerRegistry2
       end
     end
 
-    def search(query = '')
+    def search(query = '', record_count = 100)
       all_repos = []
-      paginate_doget('/v2/_catalog') do |response|
-        repos = JSON.parse(response)['repositories']
-        repos.select! { |repo| repo.match?(/#{query}/) } unless query.empty?
-        all_repos += repos
+      regex = Regexp.new(Regexp.escape(query), Regexp::IGNORECASE) unless query.empty?
+
+      paginate_doget("/v2/_catalog?n=#{record_count}") do |response|
+        repos = JSON.parse(response).fetch('repositories', [])
+        repos.each do |repo|
+          all_repos << repo if query.empty? || regex.match?(repo)
+        end
       end
+
       all_repos
     end
 
@@ -246,7 +250,7 @@ module DockerRegistry2
       links = {}
 
       # Parse each part into a named link
-      parts.each do |part, _index|
+      parts.each_key do |part|
         section = part.split(';')
         url = section[0][/<(.*)>/, 1]
         name = section[1][/rel="?([^"]*)"?/, 1].to_sym
