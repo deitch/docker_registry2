@@ -11,8 +11,8 @@ module DockerRegistry2
     @reg = DockerRegistry2::Registry.new(uri, opts)
   end
 
-  def self.search(query = '')
-    @reg.search(query)
+  def self.search(query = '', records = 100)
+    @reg.search(query, records)
   end
 
   def self.tags(repository)
