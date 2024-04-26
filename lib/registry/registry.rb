@@ -195,7 +195,6 @@ module DockerRegistry2
         # download layer
         # puts "getting layer (v2) #{layer['digest']}"
         blob(repo, layer['digest'], layer_file)
-        layer_file
       end
     end
 
@@ -215,7 +214,6 @@ module DockerRegistry2
         # puts "getting layer (v1) #{layer['blobSum']}"
         blob(repo, layer['blobSum'], layer_file)
         # return layer file
-        layer_file
       end
     end
 
@@ -241,7 +239,6 @@ module DockerRegistry2
     # Parse the value of the Link HTTP header and return a Hash whose keys are the rel values turned into symbols, and
     # the values are URLs. For example, `{ next: '/v2/_catalog?n=100&last=x' }`.
     def parse_link_header(header)
-      last = ''
       parts = header.split(',')
       links = {}
 
@@ -301,7 +298,7 @@ module DockerRegistry2
         raise DockerRegistry2::NotFound, "Image not found at #{@uri.host}"
       rescue RestClient::Unauthorized => e
         header = e.response.headers[:www_authenticate]
-        method = header.to_s.downcase.split(' ')[0]
+        method = header.to_s.downcase.split[0]
         case method
         when 'basic'
           response = do_basic_req(type, url, stream, payload)

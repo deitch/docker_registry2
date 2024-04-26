@@ -22,15 +22,15 @@ Gem::Specification.new do |spec|
                                                                  File.directory?(f)
                                                                end
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
-  spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'rake', '~> 10.0'
   spec.add_development_dependency 'rspec', '~> 3'
-  spec.add_development_dependency 'rubocop', '>= 0.26.0'
+  spec.add_development_dependency 'rubocop', '>= 1.63.0'
   spec.add_development_dependency 'vcr', '~> 6'
   spec.add_development_dependency 'webmock'
 
   spec.add_dependency 'rest-client', '>= 1.8.0'
+  spec.metadata['rubygems_mfa_required'] = 'true'
 end
