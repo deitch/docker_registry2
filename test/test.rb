@@ -11,8 +11,8 @@ ensure
   FileUtils.remove_entry_secure tmpdir
 end
 
-version = ENV['VERSION']
-regurl = ENV['REGISTRY']
+version = ENV.fetch('VERSION', nil)
+regurl = ENV.fetch('REGISTRY', nil)
 reg = DockerRegistry2.connect regurl
 
 # do we have tags?
@@ -57,20 +57,20 @@ abort if archs != %w[amd64 amd64]
 # can we get the blob?
 case version
 when 'v1'
-  layer_blob = within_tmpdir do |tmpdir|
+  within_tmpdir do |tmpdir|
     tmpfile = File.join(tmpdir, 'first_layer.blob')
     reg.blob image, manifest['fsLayers'].first['blobSum'], tmpfile
   end
 when 'v2'
-  image_blob = reg.blob image, manifest['config']['digest']
-  layer_blob = within_tmpdir do |tmpdir|
+  reg.blob image, manifest['config']['digest']
+  within_tmpdir do |tmpdir|
     tmpfile = File.join(tmpdir, 'first_layer.blob')
     reg.blob image, manifest['layers'].first['digest'], tmpfile
   end
 end
 
 # can we get the digest?
-digest = reg.digest image, 'latest'
+reg.digest image, 'latest'
 
 # can we pull an image?
 within_tmpdir { |tmpdir| reg.pull image, 'latest', tmpdir }
