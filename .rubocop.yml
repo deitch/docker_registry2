@@ -1,10 +1,15 @@
 AllCops:
   NewCops: enable
+  TargetRubyVersion: 3.0
 
 Metrics/BlockLength:
   Enabled: false
 
 Metrics/MethodLength:
+  Enabled: false
+
+# each_key is not supported by Ruby 3.0.
+Style/HashEachMethods:
   Enabled: false
 
 inherit_from: .rubocop_todo.yml

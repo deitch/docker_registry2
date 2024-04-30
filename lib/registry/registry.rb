@@ -17,7 +17,9 @@ module DockerRegistry2
     # @option options [Hash] :http_options Extra options for RestClient::Request.execute.
     def initialize(uri, options = {})
       @uri = URI.parse(uri)
-      @base_uri = "#{@uri.scheme}://#{@uri.host}:#{@uri.port}#{@uri.path}"
+      @base_uri = +"#{@uri.scheme}://#{@uri.host}:#{@uri.port}#{@uri.path}"
+      # `URI.join("https://example.com/foo/bar", "v2")` drops `bar` in the base URL. A trailing slash prevents that.
+      @base_uri << '/' unless @base_uri.end_with? '/'
       @user = options[:user]
       @password = options[:password]
       @http_options = options[:http_options] || {}
@@ -49,16 +51,18 @@ module DockerRegistry2
         response = doget(url)
         yield response
 
-        link_header = response.headers[:link]
-        break unless link_header
+        link_header = response.headers[:link] or break
+        next_url = parse_link_header(link_header)[:next] or break
 
-        url = parse_link_header(link_header)[:next]
+        # The next URL in the Link header may be relative to the request URL, or absolute.
+        # URI.join handles both cases nicely.
+        url = URI.join(response.request.url, next_url)
       end
     end
 
     def search(query = '')
       all_repos = []
-      paginate_doget('/v2/_catalog') do |response|
+      paginate_doget('v2/_catalog') do |response|
         repos = JSON.parse(response)['repositories']
         repos.select! { |repo| repo.match?(/#{query}/) } unless query.empty?
         all_repos += repos
@@ -75,7 +79,7 @@ module DockerRegistry2
       query_vars = ''
       query_vars = "?#{URI.encode_www_form(params)}" if params.length.positive?
 
-      response = doget "/v2/#{repo}/tags/list#{query_vars}"
+      response = doget "v2/#{repo}/tags/list#{query_vars}"
       # parse the response
       resp = JSON.parse response
       # parse out next page link if necessary
@@ -104,7 +108,7 @@ module DockerRegistry2
 
     def manifest(repo, tag)
       # first get the manifest
-      response = doget "/v2/#{repo}/manifests/#{tag}"
+      response = doget "v2/#{repo}/manifests/#{tag}"
       parsed = JSON.parse response.body
       manifest = DockerRegistry2::Manifest[parsed]
       manifest.body = response.body
@@ -113,7 +117,7 @@ module DockerRegistry2
     end
 
     def blob(repo, digest, outpath = nil)
-      blob_url = "/v2/#{repo}/blobs/#{digest}"
+      blob_url = "v2/#{repo}/blobs/#{digest}"
       if outpath.nil?
         response = doget(blob_url)
         DockerRegistry2::Blob.new(response.headers, response.body)
@@ -127,7 +131,7 @@ module DockerRegistry2
     end
 
     def manifest_digest(repo, tag)
-      tag_path = "/v2/#{repo}/manifests/#{tag}"
+      tag_path = "v2/#{repo}/manifests/#{tag}"
       dohead(tag_path).headers[:docker_content_digest]
     rescue DockerRegistry2::InvalidMethod
       # Pre-2.3.0 registries didn't support manifest HEAD requests
@@ -161,9 +165,9 @@ module DockerRegistry2
 
     def rmtag(image, tag)
       # TODO: Need full response back. Rewrite other manifests() calls without JSON?
-      reference = doget("/v2/#{image}/manifests/#{tag}").headers[:docker_content_digest]
+      reference = doget("v2/#{image}/manifests/#{tag}").headers[:docker_content_digest]
 
-      dodelete("/v2/#{image}/manifests/#{reference}").code
+      dodelete("v2/#{image}/manifests/#{reference}").code
     end
 
     def pull(repo, tag, dir)
@@ -224,7 +228,7 @@ module DockerRegistry2
 
       raise DockerRegistry2::RegistryVersionException unless manifest['schemaVersion'] == 2
 
-      doput "/v2/#{newrepo}/manifests/#{newtag}", manifest.to_json
+      doput "v2/#{newrepo}/manifests/#{newtag}", manifest.to_json
     end
 
     def copy(repo, tag, newregistry, newrepo, newtag); end
@@ -232,7 +236,7 @@ module DockerRegistry2
     # gets the size of a particular blob, given the repo and the content-addressable hash
     # usually unneeded, since manifest includes it
     def blob_size(repo, blobSum)
-      response = dohead "/v2/#{repo}/blobs/#{blobSum}"
+      response = dohead "v2/#{repo}/blobs/#{blobSum}"
       Integer(response.headers[:content_length], 10)
     end
 
@@ -243,7 +247,7 @@ module DockerRegistry2
       links = {}
 
       # Parse each part into a named link
-      parts.each_key do |part|
+      parts.each do |part, _index|
         section = part.split(';')
         url = section[0][/<(.*)>/, 1]
         name = section[1][/rel="?([^"]*)"?/, 1].to_sym
@@ -287,7 +291,7 @@ module DockerRegistry2
                 end
         response = RestClient::Request.execute(@http_options.merge(
                                                  method: type,
-                                                 url: @base_uri + url,
+                                                 url: URI.join(@base_uri, url).to_s,
                                                  headers: headers(payload: payload),
                                                  block_response: block,
                                                  payload: payload
@@ -324,7 +328,7 @@ module DockerRegistry2
                 end
         response = RestClient::Request.execute(@http_options.merge(
                                                  method: type,
-                                                 url: @base_uri + url,
+                                                 url: URI.join(@base_uri, url).to_s,
                                                  user: @user,
                                                  password: @password,
                                                  headers: headers(payload: payload),
@@ -357,7 +361,7 @@ module DockerRegistry2
                 end
         response = RestClient::Request.execute(@http_options.merge(
                                                  method: type,
-                                                 url: @base_uri + url,
+                                                 url: URI.join(@base_uri, url).to_s,
                                                  headers: headers(payload: payload, bearer_token: token),
                                                  block_response: block,
                                                  payload: payload

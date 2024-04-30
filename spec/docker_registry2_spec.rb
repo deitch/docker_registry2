@@ -31,12 +31,11 @@ RSpec.describe DockerRegistry2 do
     end
   end
 
-  describe 'search' do
-    let(:search_hello_world) do
-      VCR.use_cassette('search/hello_world') { connected_object.search('hello-world') }
+  describe '#search' do
+    it 'lists all the repositories matching the query' do
+      repos = VCR.use_cassette('search/hello_world') { connected_object.search('hello-world') }
+      expect(repos).to eq %w[hello-world-v1 hello-world-v2 hello-world-v3 hello-world-v4]
     end
-    it { expect { search_hello_world }.not_to raise_error }
-    it { expect(search_hello_world.size).to eq 2 }
   end
 
   describe 'manifest' do
@@ -88,7 +87,7 @@ RSpec.describe DockerRegistry2 do
       let(:registry) { DockerRegistry2::Registry.new(uri) }
 
       it 'The @path should be empty' do
-        expect(registry.instance_variable_get(:@base_uri)).to eq('https://example.com:443')
+        expect(registry.instance_variable_get(:@base_uri)).to eq('https://example.com:443/')
       end
     end
 
@@ -97,7 +96,7 @@ RSpec.describe DockerRegistry2 do
       let(:registry) { DockerRegistry2::Registry.new(uri) }
 
       it 'The @path is included' do
-        expect(registry.instance_variable_get(:@base_uri)).to eq('https://registry.myCompany.com:443/dockerproxy')
+        expect(registry.instance_variable_get(:@base_uri)).to eq('https://registry.myCompany.com:443/dockerproxy/')
       end
     end
 
